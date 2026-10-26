@@ -1,0 +1,9 @@
+medicine_id,current_stock,supplier_lead_time_days,safety_stock,pending_order_quantity,unit_cost
+M01AB,18.0,7,12.0,0.0,8.50
+M01AE,26.0,7,9.0,10.0,5.25
+N02BA,45.0,5,10.0,0.0,4.10
+N02BE,135.0,7,68.0,50.0,6.75
+N05B,120.0,7,24.0,0.0,14.20
+N05C,38.0,7,5.0,0.0,18.50
+R03,45.0,10,28.0,25.0,22.00
+R06,35.0,7,11.0,0.0,7.80

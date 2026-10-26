@@ -1,0 +1,17 @@
+batch_id,medicine_id,batch_quantity,expiry_date,days_until_expiry,expected_demand_before_expiry,prior_batches_quantity,net_demand_allocated,unsold_units_at_risk,unit_cost,value_at_risk,expiry_status,action_recommendation
+B-M01AB-001,M01AB,8.0,2019-10-02,-7,0.0,0.0,0.0,8.0,8.5,68.0,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.
+B-M01AB-002,M01AB,20.0,2019-10-14,5,25.15,0.0,20.0,0.0,8.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.
+B-M01AE-001,M01AE,15.0,2019-10-11,2,7.88,0.0,7.88,7.12,5.25,37.38,EXPIRY_RISK,NEAR EXPIRY: Risk of 7.1 unsold units. Expedite dispensing or return to vendor.
+B-M01AE-002,M01AE,25.0,2019-11-15,37,146.69,15.0,25.0,0.0,5.25,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.
+B-N02BA-001,N02BA,30.0,2019-11-01,23,83.28,0.0,30.0,0.0,4.1,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.
+B-N02BE-001,N02BE,25.0,2019-09-28,-11,0.0,0.0,0.0,25.0,6.75,168.75,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.
+B-N02BE-002,N02BE,60.0,2019-10-12,3,101.99,0.0,60.0,0.0,6.75,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.
+B-N02BE-003,N02BE,120.0,2019-10-18,9,311.96,60.0,120.0,0.0,6.75,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.
+B-N05B-001,N05B,15.0,2019-10-08,-1,0.0,0.0,0.0,15.0,14.2,213.0,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.
+B-N05B-002,N05B,40.0,2019-10-15,6,54.86,0.0,40.0,0.0,14.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.
+B-N05B-003,N05B,50.0,2019-10-18,9,82.13,40.0,42.13,7.87,14.2,111.75,EXPIRY_RISK,NEAR EXPIRY: Risk of 7.9 unsold units. Expedite dispensing or return to vendor.
+B-N05C-001,N05C,10.0,2019-10-04,-5,0.0,0.0,0.0,10.0,18.5,185.0,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.
+B-N05C-002,N05C,20.0,2019-10-20,11,6.67,0.0,6.67,13.33,18.5,246.6,EXPIRY_RISK,NEAR EXPIRY: Risk of 13.3 unsold units. Expedite dispensing or return to vendor.
+B-R03-001,R03,12.0,2019-09-30,-9,0.0,0.0,0.0,12.0,22.0,264.0,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.
+B-R03-002,R03,30.0,2019-10-13,4,23.24,0.0,23.24,6.76,22.0,148.72,EXPIRY_RISK,NEAR EXPIRY: Risk of 6.8 unsold units. Expedite dispensing or return to vendor.
+B-R06-001,R06,25.0,2019-11-30,52,145.39,0.0,25.0,0.0,7.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.
