@@ -1,0 +1,121 @@
+batch_id,medicine_id,batch_quantity,expiry_date,days_until_expiry,expected_demand_before_expiry,prior_batches_quantity,net_demand_allocated,unsold_units_at_risk,unit_cost,value_at_risk,expiry_status,action_recommendation,data_source,is_synthetic
+B-SYN-ACEC-100-M01,SYN-ACEC-100,125.0,2027-04-17,171,4093.87,0.0,125.0,0.0,6.9,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ACEC-100-L02,SYN-ACEC-100,200.0,2027-12-31,429,10261.52,125.0,200.0,0.0,6.9,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ALEN-70-M01,SYN-ALEN-70,26.0,2027-03-04,127,652.43,0.0,26.0,0.0,38.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ALEN-70-L02,SYN-ALEN-70,41.6,2027-07-08,253,1298.55,26.0,41.6,0.0,38.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ALPR-05-EXP,SYN-ALPR-05,23.2,2026-10-06,-22,0.0,0.0,0.0,23.2,4.8,111.36,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-ALPR-05-M01,SYN-ALPR-05,77.5,2027-04-03,157,2339.7,0.0,77.5,0.0,4.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ALPR-05-L02,SYN-ALPR-05,124.0,2027-11-27,395,5877.8,77.5,124.0,0.0,4.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-AMLO-5-M01,SYN-AMLO-5,142.5,2027-01-29,93,2632.93,0.0,142.5,0.0,4.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-AMLO-5-L02,SYN-AMLO-5,228.0,2027-12-05,403,11410.68,142.5,228.0,0.0,4.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-AMOX-500-EXP,SYN-AMOX-500,36.8,2026-10-20,-8,0.0,0.0,0.0,36.8,6.5,239.2,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-AMOX-500-M01,SYN-AMOX-500,122.5,2027-04-10,164,3940.82,0.0,122.5,0.0,6.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-AMOX-500-L02,SYN-AMOX-500,196.0,2027-07-23,268,6442.14,122.5,196.0,0.0,6.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ATOR-20-WARN,SYN-ATOR-20,96.0,2026-11-18,21,660.35,0.0,96.0,0.0,11.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ATOR-20-M01,SYN-ATOR-20,160.0,2027-03-02,125,3886.52,96.0,160.0,0.0,11.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ATOR-20-L02,SYN-ATOR-20,256.0,2027-09-22,329,10214.77,256.0,256.0,0.0,11.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-AZIT-500-M01,SYN-AZIT-500,80.0,2027-04-02,156,2426.07,0.0,80.0,0.0,18.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-AZIT-500-L02,SYN-AZIT-500,128.0,2027-12-05,403,6254.39,80.0,128.0,0.0,18.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-BUDE-200-M01,SYN-BUDE-200,36.0,2027-04-23,177,1232.2,0.0,36.0,0.0,85.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-BUDE-200-L02,SYN-BUDE-200,57.6,2027-07-21,266,1850.83,36.0,57.6,0.0,85.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CALC-500-EXP,SYN-CALC-500,46.5,2026-10-16,-12,0.0,0.0,0.0,46.5,7.5,348.75,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-CALC-500-M01,SYN-CALC-500,155.0,2027-04-01,155,4610.8,0.0,155.0,0.0,7.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CALC-500-L02,SYN-CALC-500,248.0,2027-10-07,344,10227.18,155.0,248.0,0.0,7.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CEFT-1G-WARN,SYN-CEFT-1G,24.0,2026-11-21,24,185.75,0.0,24.0,0.0,45.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CEFT-1G-M01,SYN-CEFT-1G,40.0,2027-04-22,176,1351.44,24.0,40.0,0.0,45.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CEFT-1G-L02,SYN-CEFT-1G,64.0,2027-11-03,371,2846.9,64.0,64.0,0.0,45.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CEFX-200-EXP,SYN-CEFX-200,21.3,2026-10-17,-11,0.0,0.0,0.0,21.3,14.5,308.85,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-CEFX-200-M01,SYN-CEFX-200,71.0,2027-03-23,146,2000.44,0.0,71.0,0.0,14.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CEFX-200-L02,SYN-CEFX-200,113.6,2027-09-27,334,4579.75,71.0,113.6,0.0,14.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CIPR-500-M01,SYN-CIPR-500,64.0,2027-02-28,123,1512.12,0.0,64.0,0.0,9.4,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CIPR-500-L02,SYN-CIPR-500,102.4,2027-12-10,408,5011.57,64.0,102.4,0.0,9.4,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CLON-05-M01,SYN-CLON-05,66.0,2027-02-10,105,1349.66,0.0,66.0,0.0,5.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CLON-05-L02,SYN-CLON-05,105.6,2027-07-14,259,3329.67,66.0,105.6,0.0,5.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CLOP-75-M01,SYN-CLOP-75,76.0,2027-03-23,146,2183.27,0.0,76.0,0.0,13.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-CLOP-75-L02,SYN-CLOP-75,121.6,2027-12-21,419,6267.86,76.0,121.6,0.0,13.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-DAPA-10-M01,SYN-DAPA-10,75.0,2027-03-31,154,2268.46,0.0,75.0,0.0,32.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-DAPA-10-L02,SYN-DAPA-10,120.0,2027-10-25,362,5334.06,75.0,120.0,0.0,32.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-DOMP-10-M01,SYN-DOMP-10,77.5,2027-03-25,148,2211.86,0.0,77.5,0.0,4.1,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-DOMP-10-L02,SYN-DOMP-10,124.0,2027-09-03,310,4637.08,77.5,124.0,0.0,4.1,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-DOXY-100-M01,SYN-DOXY-100,47.5,2027-01-30,94,869.8,0.0,47.5,0.0,5.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-DOXY-100-L02,SYN-DOXY-100,76.0,2027-10-23,360,3328.75,47.5,76.0,0.0,5.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-EMPA-25-EXP,SYN-EMPA-25,17.2,2026-10-20,-8,0.0,0.0,0.0,17.2,36.0,619.2,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-EMPA-25-M01,SYN-EMPA-25,57.5,2027-01-31,95,1071.5,0.0,57.5,0.0,36.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-EMPA-25-L02,SYN-EMPA-25,92.0,2027-12-06,404,4552.96,57.5,92.0,0.0,36.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ENAL-5-EXP,SYN-ENAL-5,16.5,2026-10-02,-26,0.0,0.0,0.0,16.5,5.1,84.15,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-ENAL-5-M01,SYN-ENAL-5,55.0,2027-01-30,94,988.84,0.0,55.0,0.0,5.1,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ENAL-5-L02,SYN-ENAL-5,88.0,2027-10-17,354,3718.95,55.0,88.0,0.0,5.1,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ESCI-10-M01,SYN-ESCI-10,90.0,2027-02-01,96,1662.64,0.0,90.0,0.0,11.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ESCI-10-L02,SYN-ESCI-10,144.0,2027-08-07,283,4890.67,90.0,144.0,0.0,11.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ETOR-90-WARN,SYN-ETOR-90,33.6,2026-12-09,42,448.9,0.0,33.6,0.0,16.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ETOR-90-M01,SYN-ETOR-90,56.0,2027-02-25,120,1275.27,33.6,56.0,0.0,16.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ETOR-90-L02,SYN-ETOR-90,89.6,2027-11-28,396,4199.32,89.6,89.6,0.0,16.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-FEXO-120-EXP,SYN-FEXO-120,24.8,2026-10-19,-9,0.0,0.0,0.0,24.8,14.0,347.2,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-FEXO-120-M01,SYN-FEXO-120,82.5,2027-03-30,153,2437.23,0.0,82.5,0.0,14.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-FEXO-120-L02,SYN-FEXO-120,132.0,2028-01-15,444,7076.23,82.5,132.0,0.0,14.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-FLUT-50-WARN,SYN-FLUT-50,17.4,2026-12-02,35,197.25,0.0,17.4,0.0,95.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-FLUT-50-M01,SYN-FLUT-50,29.0,2027-03-11,134,750.58,17.4,29.0,0.0,95.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-FLUT-50-L02,SYN-FLUT-50,46.4,2027-08-15,291,1628.09,46.4,46.4,0.0,95.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-GABA-300-M01,SYN-GABA-300,50.0,2027-03-03,126,1211.36,0.0,50.0,0.0,17.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-GABA-300-L02,SYN-GABA-300,80.0,2027-09-09,316,3035.38,50.0,80.0,0.0,17.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-GLIM-2-M01,SYN-GLIM-2,112.5,2027-03-26,149,3133.2,0.0,112.5,0.0,6.4,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-GLIM-2-L02,SYN-GLIM-2,180.0,2027-08-21,297,6232.33,112.5,180.0,0.0,6.4,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-INSU-GLA-M01,SYN-INSU-GLA,32.5,2027-03-06,129,804.41,0.0,32.5,0.0,165.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-INSU-GLA-L02,SYN-INSU-GLA,52.0,2027-08-02,278,1731.52,32.5,52.0,0.0,165.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-IRON-FOL-M01,SYN-IRON-FOL,97.5,2027-03-01,124,2310.15,0.0,97.5,0.0,9.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-IRON-FOL-L02,SYN-IRON-FOL,156.0,2028-01-30,459,8531.06,97.5,156.0,0.0,9.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-LEVC-5-M01,SYN-LEVC-5,145.0,2027-04-16,170,4791.97,0.0,145.0,0.0,5.4,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-LEVC-5-L02,SYN-LEVC-5,232.0,2027-07-19,264,7441.49,145.0,232.0,0.0,5.4,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-LEVO-500-M01,SYN-LEVO-500,52.0,2027-04-17,171,1745.96,0.0,52.0,0.0,12.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-LEVO-500-L02,SYN-LEVO-500,83.2,2027-11-02,370,3775.03,52.0,83.2,0.0,12.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-LOSA-50-EXP,SYN-LOSA-50,31.5,2026-10-09,-19,0.0,0.0,0.0,31.5,7.8,245.7,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-LOSA-50-M01,SYN-LOSA-50,105.0,2027-02-07,102,2074.31,0.0,105.0,0.0,7.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-LOSA-50-L02,SYN-LOSA-50,168.0,2027-08-05,281,5699.42,105.0,168.0,0.0,7.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-MEFE-500-M01,SYN-MEFE-500,74.0,2027-03-27,150,2210.4,0.0,74.0,0.0,5.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-MEFE-500-L02,SYN-MEFE-500,118.4,2027-09-09,316,4656.71,74.0,118.4,0.0,5.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METF-500-WARN,SYN-METF-500,126.0,2026-11-28,31,1278.0,0.0,126.0,0.0,3.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METF-500-M01,SYN-METF-500,210.0,2027-02-12,107,4379.33,126.0,210.0,0.0,3.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METF-500-L02,SYN-METF-500,336.0,2028-01-24,453,18498.55,336.0,336.0,0.0,3.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METH-1500-WARN,SYN-METH-1500,72.0,2026-12-08,41,916.45,0.0,72.0,0.0,13.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METH-1500-M01,SYN-METH-1500,120.0,2027-02-11,106,2359.36,72.0,120.0,0.0,13.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METH-1500-L02,SYN-METH-1500,192.0,2028-01-13,442,9818.07,192.0,192.0,0.0,13.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METO-50-WARN,SYN-METO-50,52.5,2026-12-02,35,597.82,0.0,52.5,0.0,9.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METO-50-M01,SYN-METO-50,87.5,2027-02-06,101,1721.44,52.5,87.5,0.0,9.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METO-50-L02,SYN-METO-50,140.0,2028-01-04,433,7373.59,140.0,140.0,0.0,9.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METR-400-M01,SYN-METR-400,92.5,2027-03-14,137,2441.08,0.0,92.5,0.0,3.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-METR-400-L02,SYN-METR-400,148.0,2027-10-25,362,6445.41,92.5,148.0,0.0,3.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-MONT-10-WARN,SYN-MONT-10,66.0,2026-11-28,31,668.79,0.0,66.0,0.0,12.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-MONT-10-M01,SYN-MONT-10,110.0,2027-03-05,128,2744.63,66.0,110.0,0.0,12.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-MONT-10-L02,SYN-MONT-10,176.0,2027-08-22,298,6382.71,176.0,176.0,0.0,12.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-NAPR-500-EXP,SYN-NAPR-500,19.5,2026-10-03,-25,0.0,0.0,0.0,19.5,8.2,159.9,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-NAPR-500-M01,SYN-NAPR-500,65.0,2027-02-20,115,1430.21,0.0,65.0,0.0,8.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-NAPR-500-L02,SYN-NAPR-500,104.0,2027-06-30,245,3039.37,65.0,104.0,0.0,8.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-OMEP-20-M01,SYN-OMEP-20,175.0,2027-02-10,105,3582.31,0.0,175.0,0.0,4.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-OMEP-20-L02,SYN-OMEP-20,280.0,2028-01-06,435,14818.06,175.0,280.0,0.0,4.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ONDA-4-M01,SYN-ONDA-4,60.0,2027-02-28,123,1442.16,0.0,60.0,0.0,6.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ONDA-4-L02,SYN-ONDA-4,96.0,2027-09-24,331,3877.28,60.0,96.0,0.0,6.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-PANT-40-WARN,SYN-PANT-40,114.0,2026-11-12,15,544.48,0.0,114.0,0.0,7.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-PANT-40-M01,SYN-PANT-40,190.0,2027-01-27,91,3310.56,114.0,190.0,0.0,7.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-PANT-40-L02,SYN-PANT-40,304.0,2027-10-29,366,13319.39,304.0,304.0,0.0,7.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-PARA-650-WARN,SYN-PARA-650,144.0,2026-11-24,27,1253.74,0.0,144.0,0.0,2.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-PARA-650-M01,SYN-PARA-650,240.0,2027-02-15,110,5041.05,144.0,240.0,0.0,2.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-PARA-650-L02,SYN-PARA-650,384.0,2027-08-10,286,13071.96,384.0,384.0,0.0,2.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-RABE-20-EXP,SYN-RABE-20,30.0,2026-10-08,-20,0.0,0.0,0.0,30.0,8.5,255.0,EXPIRED,DO NOT SELL: Expired medicine. Quarantine immediately for authorized medical destruction.,SYNTHETIC_DEMO,True
+B-SYN-RABE-20-M01,SYN-RABE-20,100.0,2027-02-07,102,1952.7,0.0,100.0,0.0,8.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-RABE-20-L02,SYN-RABE-20,160.0,2027-09-09,316,6056.19,100.0,160.0,0.0,8.5,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ROSU-10-M01,SYN-ROSU-10,99.0,2027-01-26,90,1760.39,0.0,99.0,0.0,14.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ROSU-10-L02,SYN-ROSU-10,158.4,2027-09-18,325,6347.81,99.0,158.4,0.0,14.8,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-SERT-50-M01,SYN-SERT-50,60.0,2027-03-21,144,1706.38,0.0,60.0,0.0,14.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-SERT-50-L02,SYN-SERT-50,96.0,2027-12-25,423,5019.0,60.0,96.0,0.0,14.2,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-SITA-100-M01,SYN-SITA-100,67.5,2027-04-19,173,2255.19,0.0,67.5,0.0,28.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-SITA-100-L02,SYN-SITA-100,108.0,2027-10-27,364,4742.97,67.5,108.0,0.0,28.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-TELM-40-M01,SYN-TELM-40,132.0,2027-04-14,168,4332.99,0.0,132.0,0.0,8.9,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-TELM-40-L02,SYN-TELM-40,211.2,2028-01-08,437,11271.04,132.0,211.2,0.0,8.9,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-TRAM-50-M01,SYN-TRAM-50,42.5,2027-03-04,127,1016.75,0.0,42.5,0.0,15.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-TRAM-50-L02,SYN-TRAM-50,68.0,2027-09-14,321,2564.75,42.5,68.0,0.0,15.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-VILD-50-M01,SYN-VILD-50,70.0,2027-04-07,161,2177.56,0.0,70.0,0.0,22.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-VILD-50-L02,SYN-VILD-50,112.0,2028-01-08,437,5904.71,70.0,112.0,0.0,22.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-VITD-60K-M01,SYN-VITD-60K,140.0,2027-04-20,174,4782.97,0.0,140.0,0.0,22.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-VITD-60K-L02,SYN-VITD-60K,224.0,2028-02-03,463,12733.52,140.0,224.0,0.0,22.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ZINC-50-M01,SYN-ZINC-50,80.0,2027-03-17,140,2157.02,0.0,80.0,0.0,4.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True
+B-SYN-ZINC-50-L02,SYN-ZINC-50,128.0,2027-09-05,312,4807.74,80.0,128.0,0.0,4.0,0.0,HEALTHY_BATCH,SAFE: Expected demand satisfies batch under standard FEFO dispensing.,SYNTHETIC_DEMO,True

@@ -1,0 +1,51 @@
+medicine_id,current_stock,pending_order_quantity,inventory_position,supplier_lead_time_days,lead_time_demand,safety_stock,reorder_point,estimated_days_of_cover,unit_cost,inventory_value,risk_status,action_recommendation,data_source,is_synthetic
+SYN-AMOX-500,8.6,0.0,8.6,5,117.08,21.4,138.48,0.4,6.5,55.9,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-AZIT-500,96.0,0.0,96.0,6,101.93,17.0,118.93,5.8,18.2,1747.2,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-CIPR-500,53.3,0.0,53.3,4,48.24,11.5,59.74,4.3,9.4,501.02,REORDER_WARNING,REORDER RECOMMENDED: Stock position has reached safety buffer threshold.,SYNTHETIC_DEMO,True
+SYN-DOXY-100,185.0,47.5,232.5,5,47.64,10.3,57.94,19.8,5.8,1073.0,OVERSTOCKED,OVERSTOCKED: Pause procurement; excess capital tied in inventory.,SYNTHETIC_DEMO,True
+SYN-CEFT-1G,100.4,16.0,116.4,7,55.38,10.9,66.28,12.7,45.0,4518.0,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-CEFX-200,128.1,0.0,128.1,5,65.12,14.4,79.52,9.6,14.5,1857.45,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-LEVO-500,77.7,0.0,77.7,4,38.15,10.2,48.35,7.4,12.0,932.4,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-METR-400,102.6,0.0,102.6,3,58.2,12.9,71.1,5.6,3.2,328.32,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ATOR-20,274.4,64.0,338.4,5,159.94,22.9,182.84,8.5,11.5,3155.6,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-AMLO-5,197.7,0.0,197.7,4,105.52,17.8,123.32,7.0,4.2,830.34,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-LOSA-50,6.0,0.0,6.0,5,105.74,15.1,120.84,0.3,7.8,46.8,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-TELM-40,127.2,0.0,127.2,5,132.1,17.7,149.8,4.9,8.9,1132.08,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-METO-50,101.6,0.0,101.6,6,103.3,14.5,117.8,5.9,9.2,934.72,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-ROSU-10,364.2,99.0,463.2,5,99.94,14.8,114.74,18.2,14.8,5390.16,OVERSTOCKED,OVERSTOCKED: Pause procurement; excess capital tied in inventory.,SYNTHETIC_DEMO,True
+SYN-CLOP-75,156.8,0.0,156.8,6,88.32,13.3,101.62,10.6,13.5,2116.8,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ENAL-5,78.9,0.0,78.9,4,42.71,8.6,51.31,7.3,5.1,402.39,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-METF-500,289.2,84.0,373.2,4,163.59,24.8,188.39,6.8,3.8,1098.96,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-GLIM-2,157.2,0.0,157.2,4,87.99,14.8,102.79,6.9,6.4,1006.08,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-SITA-100,162.0,0.0,162.0,7,93.03,13.5,106.53,12.2,28.0,4536.0,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-DAPA-10,179.7,0.0,179.7,7,101.91,14.8,116.71,12.3,32.5,5840.25,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-EMPA-25,5.1,0.0,5.1,7,80.01,12.7,92.71,0.4,36.0,183.6,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-VILD-50,82.4,0.0,82.4,6,86.43,12.9,99.33,5.9,22.0,1812.8,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-INSU-GLA,51.3,0.0,51.3,8,51.78,8.4,60.18,7.9,165.0,8464.5,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-OMEP-20,519.7,175.0,694.7,4,138.97,22.4,161.37,14.8,4.5,2338.65,OVERSTOCKED,OVERSTOCKED: Pause procurement; excess capital tied in inventory.,SYNTHETIC_DEMO,True
+SYN-PANT-40,263.7,76.0,339.7,4,137.2,23.8,161.0,7.3,7.2,1898.64,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-RABE-20,142.8,0.0,142.8,4,72.78,15.2,87.98,7.6,8.5,1213.8,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ONDA-4,67.4,0.0,67.4,3,35.92,8.9,44.82,5.6,6.8,458.32,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-DOMP-10,111.3,0.0,111.3,4,56.22,12.2,68.42,7.7,4.1,456.33,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-MONT-10,191.6,44.0,235.6,5,110.66,17.7,128.36,8.6,12.5,2395.0,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-LEVC-5,204.1,0.0,204.1,4,107.27,20.1,127.37,7.2,5.4,1102.14,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-FEXO-120,5.8,0.0,5.8,5,77.66,14.4,92.06,0.4,14.0,81.2,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-BUDE-200,50.2,0.0,50.2,7,50.54,8.7,59.24,7.0,85.0,4267.0,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-FLUT-50,35.4,0.0,35.4,6,34.76,6.9,41.66,6.1,95.0,3363.0,REORDER_WARNING,REORDER RECOMMENDED: Stock position has reached safety buffer threshold.,SYNTHETIC_DEMO,True
+SYN-ACEC-100,378.2,125.0,503.2,4,95.25,18.2,113.45,15.3,6.9,2609.58,OVERSTOCKED,OVERSTOCKED: Pause procurement; excess capital tied in inventory.,SYNTHETIC_DEMO,True
+SYN-TRAM-50,90.4,0.0,90.4,6,51.22,9.3,60.52,10.7,15.0,1356.0,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-NAPR-500,115.2,0.0,115.2,5,66.84,11.8,78.64,8.6,8.2,944.64,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ETOR-90,99.4,22.4,121.8,5,52.48,10.3,62.78,8.9,16.5,1640.1,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-MEFE-500,106.6,0.0,106.6,4,53.7,11.9,65.6,7.2,5.2,554.32,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-SERT-50,125.0,0.0,125.0,6,67.79,11.3,79.09,11.0,14.2,1775.0,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ESCI-10,156.0,0.0,156.0,5,90.04,14.0,104.04,8.6,11.8,1840.8,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ALPR-05,5.2,0.0,5.2,5,76.41,12.9,89.31,0.3,4.8,24.96,CRITICAL_STOCKOUT_RISK,IMMEDIATE REORDER: Inventory position cannot fulfill demand during supplier lead time.,SYNTHETIC_DEMO,True
+SYN-CLON-05,65.5,0.0,65.5,5,63.0,11.1,74.1,5.1,5.5,360.25,REORDER_WARNING,REORDER RECOMMENDED: Stock position has reached safety buffer threshold.,SYNTHETIC_DEMO,True
+SYN-GABA-300,59.6,0.0,59.6,6,59.58,10.1,69.68,6.1,17.5,1043.0,REORDER_WARNING,REORDER RECOMMENDED: Stock position has reached safety buffer threshold.,SYNTHETIC_DEMO,True
+SYN-VITD-60K,524.8,140.0,664.8,5,136.09,24.0,160.09,19.5,22.0,11545.6,OVERSTOCKED,OVERSTOCKED: Pause procurement; excess capital tied in inventory.,SYNTHETIC_DEMO,True
+SYN-METH-1500,169.8,48.0,217.8,4,92.43,17.2,109.63,7.4,13.0,2207.4,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-CALC-500,215.7,0.0,215.7,4,118.7,19.8,138.5,7.1,7.5,1617.75,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-IRON-FOL,137.9,0.0,137.9,4,76.66,13.9,90.56,7.0,9.0,1241.1,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ZINC-50,87.9,0.0,87.9,3,45.23,10.6,55.83,5.7,4.0,351.6,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-PARA-650,255.4,96.0,351.4,3,155.7,26.3,182.0,5.2,2.5,638.5,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True
+SYN-ALEN-70,63.8,0.0,63.8,7,37.08,6.1,43.18,12.0,38.0,2424.4,HEALTHY,OPTIMAL: Inventory buffer covers lead-time demand with safety reserve.,SYNTHETIC_DEMO,True

@@ -49,7 +49,8 @@ def calculate_reorder_recommendations(
     expiry_df: Optional[pd.DataFrame] = None,
     sales_df: Optional[pd.DataFrame] = None,
     review_period_days: int = DEFAULT_REVIEW_PERIOD_DAYS,
-    min_order_quantities: Optional[Dict[str, int]] = None
+    min_order_quantities: Optional[Dict[str, int]] = None,
+    allowed_medicines: Optional[List[str]] = None
 ) -> pd.DataFrame:
     """
     Computes optimal replenishment recommendations across all medicines:
@@ -81,7 +82,8 @@ def calculate_reorder_recommendations(
     inv["safety_stock"] = pd.to_numeric(inv["safety_stock"], errors="coerce").fillna(0.0).clip(lower=0.0)
 
     # Filter to known target medicines and ensure unique records
-    inv = inv[inv["medicine_id"].isin(VALID_MEDICINE_IDS)].copy()
+    valid_ids = allowed_medicines if allowed_medicines is not None else VALID_MEDICINE_IDS
+    inv = inv[inv["medicine_id"].isin(valid_ids)].copy()
     if inv["medicine_id"].duplicated().any():
         raise ValueError(f"Duplicate medicine IDs detected in inventory dataset: {inv[inv['medicine_id'].duplicated()]['medicine_id'].tolist()}")
 

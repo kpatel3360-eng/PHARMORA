@@ -167,7 +167,8 @@ def generate_synthetic_inventory_data(
 def detect_stockout_risk(
     inventory_df: pd.DataFrame,
     forecast_df: Optional[pd.DataFrame] = None,
-    sales_df: Optional[pd.DataFrame] = None
+    sales_df: Optional[pd.DataFrame] = None,
+    allowed_medicines: Optional[List[str]] = None
 ) -> pd.DataFrame:
     """
     Computes stockout risk indicators for warehouse inventory:
@@ -195,8 +196,9 @@ def detect_stockout_risk(
     df["safety_stock"] = pd.to_numeric(df["safety_stock"], errors="coerce").fillna(0.0).clip(lower=0.0)
     df["unit_cost"] = pd.to_numeric(df["unit_cost"], errors="coerce").fillna(0.0).clip(lower=0.0)
 
-    # Filter invalid medicine codes
-    df = df[df["medicine_id"].isin(VALID_MEDICINE_IDS)].copy()
+    # Filter invalid medicine codes (default to baseline ATC codes if unset)
+    valid_ids = allowed_medicines if allowed_medicines is not None else VALID_MEDICINE_IDS
+    df = df[df["medicine_id"].isin(valid_ids)].copy()
 
     # Precompute historical daily demand averages as fallback
     hist_avg_demand = {}
@@ -292,7 +294,8 @@ def detect_expiry_risk(
     batches_df: pd.DataFrame,
     forecast_df: Optional[pd.DataFrame] = None,
     sales_df: Optional[pd.DataFrame] = None,
-    reference_date: str = DEFAULT_REFERENCE_DATE
+    reference_date: str = DEFAULT_REFERENCE_DATE,
+    allowed_medicines: Optional[List[str]] = None
 ) -> pd.DataFrame:
     """
     Evaluates expiration vulnerability across pharmaceutical batches:
@@ -319,7 +322,8 @@ def detect_expiry_risk(
 
     # Drop invalid rows
     df = df.dropna(subset=["expiry_date"])
-    df = df[df["medicine_id"].isin(VALID_MEDICINE_IDS)].copy()
+    valid_ids = allowed_medicines if allowed_medicines is not None else VALID_MEDICINE_IDS
+    df = df[df["medicine_id"].isin(valid_ids)].copy()
 
     # Daily forecast lookup
     fc_dict = {}

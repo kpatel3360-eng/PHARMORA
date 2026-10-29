@@ -51,9 +51,26 @@ from src.rescue import (
     run_rescue_to_reorder_engine,
     execute_confirmed_transfer
 )
+from src.synthetic_demo import (
+    SYNTHETIC_CATALOGUE,
+    SYNTHETIC_MED_MAP,
+    SYNTHETIC_MED_NAMES,
+    SYNTHETIC_SHORT_NAMES,
+    SYNTHETIC_CLASSES,
+    get_combined_catalogue_metadata,
+    SYNTHETIC_DATA_DIR,
+    generate_all_synthetic_analytical_tables
+)
 
 # ---------------------------------------------------------------------------
-# Standard ATC Pharmaceutical Taxonomies
+# Data Source Selection Modes
+# ---------------------------------------------------------------------------
+DATA_SOURCE_HISTORICAL = "Historical Dataset (Genuine Benchmark)"
+DATA_SOURCE_SYNTHETIC = "Synthetic Demo Dataset (50 Simulated Medicines)"
+DATA_SOURCE_COMBINED = "Combined Product Catalogue (All 58 Medicines)"
+
+# ---------------------------------------------------------------------------
+# Standard ATC Pharmaceutical Taxonomies + Expanded Catalogue
 # ---------------------------------------------------------------------------
 ATC_NAMES = {
     "M01AB": "M01AB - Anti-inflammatory (Diclofenac)",
@@ -87,6 +104,12 @@ ATC_CLASSES = {
     "R03":   "Drugs for Obstructive Airway Diseases",
     "R06":   "Antihistamines for Systemic Use"
 }
+
+# Unified catalogue metadata (Combined historical + synthetic)
+COMBINED_METADATA = get_combined_catalogue_metadata()
+ATC_NAMES.update(SYNTHETIC_MED_NAMES)
+ATC_SHORT.update(SYNTHETIC_SHORT_NAMES)
+ATC_CLASSES.update(SYNTHETIC_CLASSES)
 
 # Theme Palette Tokens: Modern Emerald & Warm Ivory
 COLOR_BG = "#F5F7F4"          # Main canvas background
@@ -149,6 +172,130 @@ def load_all_pharmora_data() -> Dict[str, Optional[pd.DataFrame]]:
         "stockout": stockout_df,
         "expiry": expiry_df,
         "reorder": reorder_df
+    }
+
+
+@st.cache_data
+def load_synthetic_demo_data() -> Dict[str, Optional[pd.DataFrame]]:
+    """Loads all synthetic demonstration Parquet outputs from data/synthetic_demo/."""
+    p = SYNTHETIC_DATA_DIR
+    if not (p / "daily_sales.parquet").exists() or not (p / "inventory_stockout_risk.parquet").exists():
+        generate_all_synthetic_analytical_tables()
+
+    daily_df = _read_parquet_source(p / "daily_sales.parquet")
+    if daily_df is not None:
+        daily_df["date"] = pd.to_datetime(daily_df["date"])
+        if "day_of_week" not in daily_df.columns:
+            daily_df["day_of_week"] = daily_df["date"].dt.day_name()
+        if "day_of_month" not in daily_df.columns:
+            daily_df["day_of_month"] = daily_df["date"].dt.day
+        if "year" not in daily_df.columns:
+            daily_df["year"] = daily_df["date"].dt.year
+        if "month" not in daily_df.columns:
+            daily_df["month"] = daily_df["date"].dt.month
+
+    summary_df = _read_parquet_source(p / "medicine_summary.parquet")
+    monthly_df = _read_parquet_source(p / "monthly_trends.parquet")
+    forecast_df = _read_parquet_source(p / "forecast_7days.parquet")
+    if forecast_df is not None:
+        forecast_df["forecast_date"] = pd.to_datetime(forecast_df["forecast_date"])
+
+    # Evaluations are strictly None for synthetic demo products (zero-fabrication guarantee)
+    eval_df = None
+
+    stockout_df = _read_parquet_source(p / "inventory_stockout_risk.parquet")
+    expiry_df = _read_parquet_source(p / "batch_expiry_risk.parquet")
+    if expiry_df is not None:
+        expiry_df["expiry_date"] = pd.to_datetime(expiry_df["expiry_date"])
+
+    reorder_df = _read_parquet_source(p / "reorder_recommendations.parquet")
+
+    return {
+        "daily": daily_df,
+        "summary": summary_df,
+        "monthly": monthly_df,
+        "forecast": forecast_df,
+        "evaluations": eval_df,
+        "stockout": stockout_df,
+        "expiry": expiry_df,
+        "reorder": reorder_df
+    }
+
+
+@st.cache_data
+def load_combined_pharmora_data() -> Dict[str, Optional[pd.DataFrame]]:
+    """Combines genuine historical observations with the synthetic demonstration dataset."""
+    hist = load_all_pharmora_data()
+    synth = load_synthetic_demo_data()
+
+    # 1. Daily Sales
+    hist_daily = hist["daily"].copy() if hist["daily"] is not None else pd.DataFrame()
+    if not hist_daily.empty and "data_source" not in hist_daily.columns:
+        hist_daily["data_source"] = "HISTORICAL"
+        hist_daily["is_synthetic"] = False
+    synth_daily = synth["daily"].copy() if synth["daily"] is not None else pd.DataFrame()
+    combined_daily = pd.concat([hist_daily, synth_daily], ignore_index=True) if not hist_daily.empty else synth_daily
+
+    # 2. Medicine Summary
+    hist_sum = hist["summary"].copy() if hist["summary"] is not None else pd.DataFrame()
+    if not hist_sum.empty and "data_source" not in hist_sum.columns:
+        hist_sum["data_source"] = "HISTORICAL"
+        hist_sum["is_synthetic"] = False
+    synth_sum = synth["summary"].copy() if synth["summary"] is not None else pd.DataFrame()
+    combined_summary = pd.concat([hist_sum, synth_sum], ignore_index=True)
+
+    # 3. Monthly Trends
+    hist_mo = hist["monthly"].copy() if hist["monthly"] is not None else pd.DataFrame()
+    if not hist_mo.empty and "data_source" not in hist_mo.columns:
+        hist_mo["data_source"] = "HISTORICAL"
+        hist_mo["is_synthetic"] = False
+    synth_mo = synth["monthly"].copy() if synth["monthly"] is not None else pd.DataFrame()
+    combined_monthly = pd.concat([hist_mo, synth_mo], ignore_index=True)
+
+    # 4. Forecasts
+    hist_fc = hist["forecast"].copy() if hist["forecast"] is not None else pd.DataFrame()
+    if not hist_fc.empty and "data_source" not in hist_fc.columns:
+        hist_fc["data_source"] = "HISTORICAL"
+        hist_fc["is_synthetic"] = False
+    synth_fc = synth["forecast"].copy() if synth["forecast"] is not None else pd.DataFrame()
+    combined_fc = pd.concat([hist_fc, synth_fc], ignore_index=True)
+
+    # 5. Evaluations: Strictly genuine historical observations only! (Never fabricate model accuracy for synthetic)
+    combined_eval = hist["evaluations"]
+
+    # 6. Stockout Risk
+    hist_stk = hist["stockout"].copy() if hist["stockout"] is not None else pd.DataFrame()
+    if not hist_stk.empty and "data_source" not in hist_stk.columns:
+        hist_stk["data_source"] = "HISTORICAL"
+        hist_stk["is_synthetic"] = False
+    synth_stk = synth["stockout"].copy() if synth["stockout"] is not None else pd.DataFrame()
+    combined_stk = pd.concat([hist_stk, synth_stk], ignore_index=True)
+
+    # 7. Batch Expiry
+    hist_exp = hist["expiry"].copy() if hist["expiry"] is not None else pd.DataFrame()
+    if not hist_exp.empty and "data_source" not in hist_exp.columns:
+        hist_exp["data_source"] = "HISTORICAL"
+        hist_exp["is_synthetic"] = False
+    synth_exp = synth["expiry"].copy() if synth["expiry"] is not None else pd.DataFrame()
+    combined_exp = pd.concat([hist_exp, synth_exp], ignore_index=True)
+
+    # 8. Reorder Recommendations
+    hist_ro = hist["reorder"].copy() if hist["reorder"] is not None else pd.DataFrame()
+    if not hist_ro.empty and "data_source" not in hist_ro.columns:
+        hist_ro["data_source"] = "HISTORICAL"
+        hist_ro["is_synthetic"] = False
+    synth_ro = synth["reorder"].copy() if synth["reorder"] is not None else pd.DataFrame()
+    combined_ro = pd.concat([hist_ro, synth_ro], ignore_index=True)
+
+    return {
+        "daily": combined_daily,
+        "summary": combined_summary,
+        "monthly": combined_monthly,
+        "forecast": combined_fc,
+        "evaluations": combined_eval,
+        "stockout": combined_stk,
+        "expiry": combined_exp,
+        "reorder": combined_ro
     }
 
 
@@ -541,7 +688,59 @@ def main():
     if "rejected_recommendations" not in st.session_state:
         st.session_state["rejected_recommendations"] = set()
 
-    data = load_all_pharmora_data()
+    # -----------------------------------------------------------------------
+    # SIDEBAR: Brand, Pharmaceutical Scope, Medicine Focus & Timeline
+    # -----------------------------------------------------------------------
+    with st.sidebar:
+        st.markdown('<div class="brand-title">💊 PHARMORA</div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand-tagline">Pharmacy Intelligence & Supply Chain Engine</div>', unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown("### 🗂️ Pharmaceutical Data Scope")
+
+        selected_data_source = st.radio(
+            "Select Data Scope",
+            options=[
+                DATA_SOURCE_HISTORICAL,
+                DATA_SOURCE_SYNTHETIC,
+                DATA_SOURCE_COMBINED
+            ],
+            index=0,
+            key="pharmora_active_data_source",
+            help="Switch between verified genuine historical records, simulated demonstration dataset, or combined catalogue."
+        )
+        active_data_source = selected_data_source
+
+        if selected_data_source == DATA_SOURCE_HISTORICAL:
+            st.markdown(
+                '<div style="background-color: #E8F3EC; border: 1px solid #A5D6A7; color: #166534; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-top: 4px; margin-bottom: 12px;">'
+                '🔒 Provenance: Genuine Historical Benchmark (2014-2019)'
+                '</div>',
+                unsafe_allow_html=True
+            )
+        elif selected_data_source == DATA_SOURCE_SYNTHETIC:
+            st.markdown(
+                '<div style="background-color: #FEF3C7; border: 1px solid #FCD34D; color: #B45309; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-top: 4px; margin-bottom: 12px;">'
+                '🧪 Provenance: Synthetic Demonstration Dataset (Simulated)'
+                '</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown(
+                '<div style="background-color: #EEF2FF; border: 1px solid #C7D2FE; color: #3730A3; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-top: 4px; margin-bottom: 12px;">'
+                '🔀 Provenance: Combined Catalogue (8 Historical · 50 Synthetic Demo)'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+    # Load active dataset according to selector
+    if selected_data_source == DATA_SOURCE_HISTORICAL:
+        data = load_all_pharmora_data()
+    elif selected_data_source == DATA_SOURCE_SYNTHETIC:
+        data = load_synthetic_demo_data()
+    else:
+        data = load_combined_pharmora_data()
+
     daily_df = data["daily"]
 
     if daily_df is None:
@@ -552,7 +751,7 @@ def main():
         )
         return
 
-    # Extract all available ATC categories
+    # Extract all available categories in the active scope
     all_meds = sorted(daily_df["medicine_id"].unique().tolist())
     stockout_df = data["stockout"]
     reorder_df = data["reorder"]
@@ -582,30 +781,40 @@ def main():
         actual_max_date = system_today
         has_valid_sales = False
 
-    # -----------------------------------------------------------------------
-    # SIDEBAR: Brand, Medicine Selection & Active Context
-    # -----------------------------------------------------------------------
+    # Continue populating sidebar controls
     with st.sidebar:
-        st.markdown('<div class="brand-title">💊 PHARMORA</div>', unsafe_allow_html=True)
-        st.markdown('<div class="brand-tagline">Pharmacy Intelligence & Supply Chain Engine</div>', unsafe_allow_html=True)
-
-        st.markdown("---")
         st.markdown("### 🎯 Active Medicine Focus")
 
-        # The Shared Source of Truth: Selected Medicine
-        default_idx = all_meds.index("N02BE") if "N02BE" in all_meds else 0
+        # Selectbox default index resolution
+        if "shared_medicine_selector" in st.session_state and st.session_state["shared_medicine_selector"] in all_meds:
+            default_idx = all_meds.index(st.session_state["shared_medicine_selector"])
+        elif "N02BE" in all_meds:
+            default_idx = all_meds.index("N02BE")
+        elif "SYN-AMOX-500" in all_meds:
+            default_idx = all_meds.index("SYN-AMOX-500")
+        else:
+            default_idx = 0
+
+        def format_medicine_entry(med_code: str) -> str:
+            meta = COMBINED_METADATA.get(med_code, {})
+            short = meta.get("short_name", ATC_SHORT.get(med_code, med_code))
+            src_tag = " [Synthetic Demo]" if (meta.get("data_source") == "SYNTHETIC_DEMO" or med_code.startswith("SYN-")) else " [Historical]"
+            return f"{med_code} · {short}{src_tag}"
+
         selected_med = st.selectbox(
-            "Select Medicine Category",
+            "Select Medicine Product",
             options=all_meds,
-            format_func=lambda x: f"{x} - {ATC_SHORT.get(x, x)}",
+            format_func=format_medicine_entry,
             index=default_idx,
             key="shared_medicine_selector",
             help="Select a medicine to dynamically filter and inspect its demand, stockout risk, expiry audit, and reorder plan."
         )
 
         # Context Card for Selected Medicine right in the sidebar
-        med_short = ATC_SHORT.get(selected_med, selected_med)
-        med_class = ATC_CLASSES.get(selected_med, "Therapeutic Category")
+        med_meta = COMBINED_METADATA.get(selected_med, {})
+        is_synth = med_meta.get("is_synthetic", selected_med.startswith("SYN-"))
+        med_short = med_meta.get("short_name", ATC_SHORT.get(selected_med, selected_med))
+        med_class = med_meta.get("therapeutic_class", ATC_CLASSES.get(selected_med, "Therapeutic Category"))
 
         # Lookup selected medicine metrics for sidebar snapshot
         med_stock_row = stockout_df[stockout_df["medicine_id"] == selected_med].iloc[0] if (stockout_df is not None and not stockout_df[stockout_df["medicine_id"] == selected_med].empty) else None
@@ -616,12 +825,22 @@ def main():
         order_qty = f"{med_reorder_row['suggested_order_quantity']} units" if med_reorder_row is not None else "N/A"
         reorder_status = med_reorder_row["reorder_status"] if med_reorder_row is not None else "NOT_CONFIGURED"
 
+        provenance_pill = (
+            '<span style="background-color: #FEF3C7; color: #B45309; border: 1px solid #FCD34D; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.72rem;">🧪 SYNTHETIC DEMO</span>'
+            if is_synth else
+            '<span style="background-color: #E8F3EC; color: #166534; border: 1px solid #A5D6A7; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.72rem;">🔒 HISTORICAL BENCHMARK</span>'
+        )
+
         st.markdown(f"""
         <div style="background-color: #F5F7F4; border: 1px solid #DDE5DF; border-radius: 8px; padding: 12px; margin-top: 8px; margin-bottom: 16px;">
             <div style="font-size: 0.75rem; font-weight: 600; color: #64748B; text-transform: uppercase;">Active Context</div>
             <div style="font-size: 1.1rem; font-weight: 700; color: #16352B; margin: 2px 0;">{selected_med} · {med_short}</div>
             <div style="font-size: 0.78rem; color: #374151; margin-bottom: 8px;">{med_class}</div>
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #DDE5DF; padding-top: 6px; font-size: 0.8rem;">
+                <span style="color: #64748B;">Data Source:</span>
+                <span>{provenance_pill}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 0.8rem;">
                 <span style="color: #64748B;">Current Stock:</span>
                 <span style="font-weight: 700; color: #16352B;">{stock_val}</span>
             </div>
@@ -636,13 +855,44 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("### 📅 Historical Horizon")
+        st.markdown("### 📅 Operational Horizon")
 
-        # Operational Timeline card displaying system date and historical availability
+        # Operational Timeline card displaying system date and availability
+        if active_data_source == DATA_SOURCE_SYNTHETIC:
+            horizon_box_bg = "#FFFBEB"
+            horizon_box_border = "#FCD34D"
+            horizon_tag_bg = "#FEF3C7"
+            horizon_tag_txt = "#92400E"
+            horizon_pill_txt = "#92400E"
+            horizon_title = "🧪 Simulated Demonstration Horizon"
+            horizon_desc = f'Simulated demo data: <span style="color: #92400E; font-weight: 700;">{actual_min_date.strftime("%d %b %Y")} – {actual_max_date.strftime("%d %b %Y")}</span>'
+            horizon_guarantee = '🧪 <strong>Synthetic Demo:</strong> Daily sales and inventory scenarios are realistically simulated across 50 clinical products for demonstration.'
+            date_filter_label = "Filter Simulated Sales Period"
+        elif active_data_source == DATA_SOURCE_COMBINED:
+            horizon_box_bg = "#EEF2FF"
+            horizon_box_border = "#C7D2FE"
+            horizon_tag_bg = "#E0E7FF"
+            horizon_tag_txt = "#3730A3"
+            horizon_pill_txt = "#3730A3"
+            horizon_title = "🔀 Combined Product Horizon"
+            horizon_desc = f'Combined catalogue span: <span style="color: #3730A3; font-weight: 700;">{actual_min_date.strftime("%d %b %Y")} – {actual_max_date.strftime("%d %b %Y")}</span>'
+            horizon_guarantee = '🔀 <strong>Hybrid Register:</strong> Incorporates genuine historical facts (2014–2019) alongside 50 simulated demonstration medicines.'
+            date_filter_label = "Filter Sales Period"
+        else:
+            horizon_box_bg = "#F8FAF9"
+            horizon_box_border = "#DDE5DF"
+            horizon_tag_bg = "#E8F3EC"
+            horizon_tag_txt = "#166534"
+            horizon_pill_txt = "#166534"
+            horizon_title = "🗓️ Historical Horizon"
+            horizon_desc = f'Historical data available: <span style="color: #166534; font-weight: 700;">{actual_min_date.strftime("%d %b %Y")} – {actual_max_date.strftime("%d %b %Y")}</span>'
+            horizon_guarantee = f'🔒 <strong>Zero-Fabrication Guarantee:</strong> Historical records reflect verified actual sales facts ({actual_max_date.year}). Dates up to current system year ({system_today.year}) are strictly not populated with fake sales.'
+            date_filter_label = "Filter Historical Sales Period"
+
         st.markdown(f"""
-        <div style="background-color: #F8FAF9; border: 1px solid #DDE5DF; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
-            <div style="font-size: 0.72rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
-                🗓️ System Timeline & Horizon
+        <div style="background-color: {horizon_box_bg}; border: 1px solid {horizon_box_border}; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+            <div style="font-size: 0.72rem; font-weight: 700; color: {horizon_tag_txt}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+                {horizon_title}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 4px;">
                 <span style="color: #64748B;">System Run Date:</span>
@@ -651,30 +901,38 @@ def main():
                 </span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 4px;">
-                <span style="color: #64748B;">Historical Horizon:</span>
-                <span style="font-weight: 700; color: #166534;">
+                <span style="color: #64748B;">Active Horizon:</span>
+                <span style="font-weight: 700; color: {horizon_pill_txt};">
                     {actual_min_date.strftime("%d %b %Y")} – {actual_max_date.strftime("%d %b %Y")}
                 </span>
             </div>
             <div style="font-size: 0.73rem; color: #64748B; border-top: 1px solid #E8EDE9; padding-top: 6px; margin-top: 6px; line-height: 1.35;">
-                🔒 <strong>Zero-Fabrication Guarantee:</strong> Historical records reflect verified actual sales facts ({actual_max_date.year}). Dates up to current system year ({system_today.year}) are strictly not populated with fake sales.
+                {horizon_guarantee}
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Clear requirement 4 label: "Historical data available: [start date] – [end date]"
         st.markdown(
             f'<div style="font-size: 0.82rem; font-weight: 600; color: #16352B; margin-bottom: 6px;">'
-            f'Historical data available: <span style="color: #166534;">{actual_min_date.strftime("%d %b %Y")} – {actual_max_date.strftime("%d %b %Y")}</span>'
+            f'{horizon_desc}'
             f'</div>',
             unsafe_allow_html=True
         )
 
-        # Ensure session state reacts dynamically when sales data is imported
-        if "last_known_max_date" not in st.session_state:
+        # Track active data source transition in session state
+        if "last_active_data_source" not in st.session_state:
+            st.session_state["last_active_data_source"] = active_data_source
+        elif st.session_state["last_active_data_source"] != active_data_source:
+            st.session_state["last_active_data_source"] = active_data_source
+            st.session_state["historical_date_slider"] = (actual_min_date, actual_max_date)
+
+        # Ensure session state reacts dynamically when sales data is imported or source changes
+        if "last_known_max_date" not in st.session_state or "last_known_min_date" not in st.session_state:
             st.session_state["last_known_max_date"] = actual_max_date
-        elif st.session_state["last_known_max_date"] != actual_max_date:
+            st.session_state["last_known_min_date"] = actual_min_date
+        elif st.session_state["last_known_max_date"] != actual_max_date or st.session_state["last_known_min_date"] != actual_min_date:
             st.session_state["last_known_max_date"] = actual_max_date
+            st.session_state["last_known_min_date"] = actual_min_date
             st.session_state["historical_date_slider"] = (actual_min_date, actual_max_date)
 
         # Guard against session state dates out of range
@@ -689,15 +947,16 @@ def main():
                     clamped_start = actual_min_date
                     clamped_end = actual_max_date
                 st.session_state["historical_date_slider"] = (clamped_start, clamped_end)
+            else:
+                st.session_state["historical_date_slider"] = (actual_min_date, actual_max_date)
 
-        # Historical date picker strictly bounded between actual_min_date and actual_max_date
+        # Active date picker strictly bounded between actual_min_date and actual_max_date
         date_range = st.date_input(
-            "Filter Historical Sales Period",
-            value=(actual_min_date, actual_max_date),
+            date_filter_label,
             min_value=actual_min_date,
             max_value=actual_max_date,
             key="historical_date_slider",
-            help=f"Select an active date range between {actual_min_date.strftime('%Y-%m-%d')} and {actual_max_date.strftime('%Y-%m-%d')}. Historical end date cannot exceed {actual_max_date.strftime('%Y-%m-%d')}."
+            help=f"Select an active date range between {actual_min_date.strftime('%Y-%m-%d')} and {actual_max_date.strftime('%Y-%m-%d')}."
         )
 
         st.markdown("---")
@@ -733,15 +992,22 @@ def main():
     else:
         filtered_daily = pd.DataFrame(columns=["date", "medicine_id", "units_sold"])
 
-    # Selected Medicine Historical Slice (Reactive source of truth)
+    # Selected Medicine Sales Slice (Reactive source of truth)
     if not filtered_daily.empty:
         med_daily = filtered_daily[filtered_daily["medicine_id"] == selected_med].sort_values("date")
     else:
         med_daily = pd.DataFrame(columns=["date", "medicine_id", "units_sold"])
 
     # -----------------------------------------------------------------------
-    # HEADER BANNER: Global Context, Current System Date & Historical Horizon
+    # HEADER BANNER: Global Context, Current System Date & Provenance
     # -----------------------------------------------------------------------
+    if active_data_source == DATA_SOURCE_SYNTHETIC:
+        source_pill_html = '<div class="context-pill" style="background-color: #FEF3C7; color: #92400E; border-color: #FCD34D;">Data Source: 🧪 Synthetic Demo (50 Simulated Medicines)</div>'
+    elif active_data_source == DATA_SOURCE_COMBINED:
+        source_pill_html = '<div class="context-pill" style="background-color: #EEF2FF; color: #3730A3; border-color: #C7D2FE;">Data Source: 🔀 Combined Catalogue (All 58 Medicines)</div>'
+    else:
+        source_pill_html = '<div class="context-pill" style="background-color: #E8F3EC; color: #166534; border-color: #A7F3D0;">Data Source: 🔒 Historical Benchmark (8 WHO ATC)</div>'
+
     st.markdown(f"""
     <div class="page-header">
         <div class="page-title">💊 PHARMORA Intelligence Platform</div>
@@ -750,11 +1016,12 @@ def main():
             <div class="context-pill">
                 Active Focus: {ATC_NAMES.get(selected_med, selected_med)} &nbsp;·&nbsp; {ATC_CLASSES.get(selected_med, '')}
             </div>
+            {source_pill_html}
             <div class="context-pill" style="background-color: #F1F5F9; color: #334155; border-color: #CBD5E1;">
                 Current Date: {system_today.strftime('%d %b %Y')}
             </div>
             <div class="context-pill" style="background-color: #E8F3EC; color: #166534; border-color: #A7F3D0;">
-                Historical Data Available: {actual_min_date.strftime('%d %b %Y')} – {actual_max_date.strftime('%d %b %Y')}
+                Data Horizon: {actual_min_date.strftime('%d %b %Y')} – {actual_max_date.strftime('%d %b %Y')}
             </div>
         </div>
     </div>
@@ -778,31 +1045,47 @@ def main():
     # SECTION 1: OVERVIEW
     # =======================================================================
     with tab_overview:
-        # Part 1A: Clearly Labelled Global Pharmacy Network KPIs
-        st.markdown('<div class="section-header">🌐 Pharmacy Network Global KPIs (All 8 Categories)</div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-subtitle">Aggregated portfolio metrics across all therapeutic classes in the central warehouse.</div>', unsafe_allow_html=True)
+        # Dynamic Section Header based on active data source
+        if active_data_source == DATA_SOURCE_SYNTHETIC:
+            sec_title = "🌐 Synthetic Demonstration Portfolio KPIs (50 Clinical Medicines)"
+            sec_sub = "Simulated demonstration portfolio metrics across 8 therapeutic classes in central inventory."
+            sales_card_sub = "Simulated Observations (180 Days)"
+        elif active_data_source == DATA_SOURCE_COMBINED:
+            sec_title = "🌐 Central Pharmacy Combined Network KPIs (All 58 Medicines)"
+            sec_sub = "Comprehensive portfolio register combining 8 historical benchmark categories and 50 simulated clinical medicines."
+            sales_card_sub = "Historical + Simulated Observations"
+        else:
+            sec_title = f"🌐 Pharmacy Network Global KPIs ({len(stockout_df) if stockout_df is not None else 8} Categories)"
+            sec_sub = "Aggregated portfolio metrics across all therapeutic classes in the central warehouse."
+            sales_card_sub = "2014-2019 Total Facts (2,106 Days)"
 
-        tot_vol = daily_df["units_sold"].sum()
+        st.markdown(f'<div class="section-header">{sec_title}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-subtitle">{sec_sub}</div>', unsafe_allow_html=True)
+
+        tot_vol = daily_df["units_sold"].sum() if daily_df is not None else 0.0
         tot_stock = stockout_df["current_stock"].sum() if stockout_df is not None else 0.0
         tot_inv_val = stockout_df["inventory_value"].sum() if stockout_df is not None else 0.0
         crit_count = (stockout_df["risk_status"].isin(["CRITICAL_STOCKOUT_RISK", "REORDER_WARNING"])).sum() if stockout_df is not None else 0
         tot_val_risk = expiry_df["value_at_risk"].sum() if expiry_df is not None else 0.0
         tot_reorder_units = reorder_df["suggested_order_quantity"].sum() if reorder_df is not None else 0
+        med_count = len(stockout_df) if stockout_df is not None else 8
 
         g_col1, g_col2, g_col3, g_col4 = st.columns(4)
         with g_col1:
-            st.markdown(render_metric_card("Historical Sales Volume", f"{tot_vol:,.0f} units", "2014-2019 Total Facts (2,106 Days)"), unsafe_allow_html=True)
+            st.markdown(render_metric_card("Sales Volume", f"{tot_vol:,.0f} units", sales_card_sub), unsafe_allow_html=True)
         with g_col2:
             st.markdown(render_metric_card("Current Warehouse Stock", f"{tot_stock:,.0f} units", f"₹{tot_inv_val:,.2f} Total Asset Value"), unsafe_allow_html=True)
         with g_col3:
-            st.markdown(render_metric_card("Medicines at Stockout Risk", f"{crit_count} / 8 categories", "2 Critical · 2 Reorder Warnings", card_type="warning" if crit_count > 0 else "healthy"), unsafe_allow_html=True)
+            st.markdown(render_metric_card("Medicines at Stockout Risk", f"{crit_count} / {med_count} medicines", "Critical & Reorder Warnings", card_type="warning" if crit_count > 0 else "healthy"), unsafe_allow_html=True)
         with g_col4:
-            st.markdown(render_metric_card("Capital at Expiry Risk", f"₹{tot_val_risk:,.2f}", "9 Batches Affected (FEFO Audit)", card_type="urgent" if tot_val_risk > 0 else "healthy"), unsafe_allow_html=True)
+            st.markdown(render_metric_card("Capital at Expiry Risk", f"₹{tot_val_risk:,.2f}", f"{len(expiry_df) if expiry_df is not None else 0} Batches Audited", card_type="urgent" if tot_val_risk > 0 else "healthy"), unsafe_allow_html=True)
 
         st.markdown("---")
 
         # Part 1B: Clearly Labelled Selected Medicine Spotlight
-        st.markdown(f'<div class="section-header">🎯 Selected Medicine Spotlight: {ATC_SHORT.get(selected_med, selected_med)} ({selected_med})</div>', unsafe_allow_html=True)
+        is_syn_focus = selected_med.startswith("SYN-") or COMBINED_METADATA.get(selected_med, {}).get("is_synthetic", False)
+        focus_provenance_badge = "🧪 Synthetic Demo" if is_syn_focus else "🔒 Historical Benchmark"
+        st.markdown(f'<div class="section-header">🎯 Selected Medicine Spotlight: {ATC_SHORT.get(selected_med, selected_med)} ({selected_med}) &nbsp;<span style="font-size: 0.75rem; vertical-align: middle; background-color: {"#FEF3C7" if is_syn_focus else "#E8F3EC"}; color: {"#92400E" if is_syn_focus else "#166534"}; padding: 2px 8px; border-radius: 12px; border: 1px solid {"#FCD34D" if is_syn_focus else "#A7F3D0"}; font-weight: 700;">{focus_provenance_badge}</span></div>', unsafe_allow_html=True)
         st.markdown(f'<div class="section-subtitle">Real-time dynamic telemetry filtered strictly for {ATC_NAMES.get(selected_med, selected_med)}.</div>', unsafe_allow_html=True)
 
         med_tot_sales = med_daily["units_sold"].sum() if not med_daily.empty else 0.0
@@ -832,7 +1115,8 @@ def main():
 
         m_col1, m_col2, m_col3, m_col4 = st.columns(4)
         with m_col1:
-            st.markdown(render_metric_card(f"{selected_med} Historical Volume", f"{med_tot_sales:,.0f} units", f"Mean Demand: {med_daily_mean:.2f} units/day", card_type="focus"), unsafe_allow_html=True)
+            vol_label = "Simulated Sales Volume" if is_syn_focus else f"{selected_med} Historical Volume"
+            st.markdown(render_metric_card(vol_label, f"{med_tot_sales:,.0f} units", f"Mean Demand: {med_daily_mean:.2f} units/day", card_type="focus"), unsafe_allow_html=True)
         with m_col2:
             st.markdown(render_metric_card(f"{selected_med} Current Stock", med_stock_display, med_cover_display, card_type=card_type_stock), unsafe_allow_html=True)
         with m_col3:
@@ -865,15 +1149,17 @@ def main():
         if reorder_df is not None:
             other_urgent = reorder_df[(reorder_df["reorder_status"] == "URGENT") & (reorder_df["medicine_id"] != selected_med)]
             if not other_urgent.empty:
-                other_list = ", ".join([f"{r['medicine_id']} ({r['suggested_order_quantity']}u)" for _, r in other_urgent.iterrows()])
-                st.warning(f"⚠️ **Other Network Procurement Alerts:** Urgent reorders pending for: **{other_list}**.")
+                other_list = ", ".join([f"{r['medicine_id']} ({r['suggested_order_quantity']}u)" for _, r in other_urgent.head(5).iterrows()])
+                more_suffix = f" ... and {len(other_urgent) - 5} more" if len(other_urgent) > 5 else ""
+                st.warning(f"⚠️ **Other Network Procurement Alerts:** Urgent reorders pending for: **{other_list}{more_suffix}**.")
                 alerts_found += 1
 
         if alerts_found == 0:
             st.success("✅ **Operations Normal:** No critical stockouts or expired stock detected for the active selection.")
 
-        # Historical Sales Trend Chart for Selected Medicine
-        st.markdown(f"#### 📈 Historical Sales Trajectory: {ATC_NAMES.get(selected_med, selected_med)}")
+        # Sales Trend Chart for Selected Medicine
+        trend_title = f"📈 Simulated Sales Trajectory: {ATC_NAMES.get(selected_med, selected_med)} [SYNTHETIC DEMO]" if is_syn_focus else f"📈 Historical Sales Trajectory: {ATC_NAMES.get(selected_med, selected_med)}"
+        st.markdown(f"#### {trend_title}")
         if not med_daily.empty:
             med_plot = med_daily.copy()
             med_plot["7d_MA"] = med_plot["units_sold"].rolling(7, min_periods=1).mean()
@@ -882,9 +1168,9 @@ def main():
             fig_trend.add_trace(go.Scatter(
                 x=med_plot["date"],
                 y=med_plot["units_sold"],
-                name="Daily Actual Sales",
+                name="Simulated Daily Sales" if is_syn_focus else "Daily Actual Sales",
                 mode="lines",
-                line=dict(color="#94A3B8", width=1.2),
+                line=dict(color="#D97706" if is_syn_focus else "#94A3B8", width=1.2),
                 opacity=0.75
             ))
             fig_trend.add_trace(go.Scatter(
@@ -892,7 +1178,7 @@ def main():
                 y=med_plot["7d_MA"],
                 name="7-Day Moving Average Trend",
                 mode="lines",
-                line=dict(color="#166534", width=2.5)
+                line=dict(color="#B45309" if is_syn_focus else "#166534", width=2.5)
             ))
             fig_trend.update_layout(
                 paper_bgcolor="#FFFFFF",
@@ -907,7 +1193,7 @@ def main():
             )
             st.plotly_chart(fig_trend, width="stretch")
         else:
-            st.info(f"ℹ️ No historical sales records for {selected_med} within the selected date filter ({start_d.strftime('%d %b %Y')} to {end_d.strftime('%d %b %Y')}). Please expand your date range in the sidebar.")
+            st.info(f"ℹ️ No sales records for {selected_med} within the selected date filter ({start_d.strftime('%d %b %Y')} to {end_d.strftime('%d %b %Y')}). Please expand your date range in the sidebar.")
 
         # Drug Portfolio Comparison Table with Selected Row Marked
         st.markdown("#### 📋 Central Pharmacy Portfolio Register")
@@ -919,13 +1205,17 @@ def main():
             merged_ov["Focus"] = merged_ov["medicine_id"].apply(lambda x: "👉 SELECTED" if x == selected_med else "")
             merged_ov["Common Name"] = merged_ov["medicine_id"].map(lambda x: ATC_SHORT.get(x, x))
             merged_ov["Therapeutic Class"] = merged_ov["medicine_id"].map(lambda x: ATC_CLASSES.get(x, ""))
+            if "data_source" in merged_ov.columns:
+                merged_ov["Data Source"] = merged_ov["data_source"].apply(lambda x: "🧪 Synthetic Demo" if x == "SYNTHETIC_DEMO" else "🔒 Historical Benchmark")
+            else:
+                merged_ov["Data Source"] = merged_ov["medicine_id"].apply(lambda x: "🧪 Synthetic Demo" if x.startswith("SYN-") else "🔒 Historical Benchmark")
 
             disp_cols = [
-                "Focus", "medicine_id", "Common Name", "current_stock", "pending_order_quantity",
+                "Focus", "medicine_id", "Common Name", "Data Source", "current_stock", "pending_order_quantity",
                 "lead_time_demand", "reorder_point", "suggested_order_quantity", "risk_status", "reorder_status"
             ]
             ov_disp = merged_ov[disp_cols].rename(columns={
-                "medicine_id": "ATC Code",
+                "medicine_id": "Identifier",
                 "current_stock": "Current Stock",
                 "pending_order_quantity": "In-Flight Orders",
                 "lead_time_demand": "LT Demand",
@@ -940,64 +1230,100 @@ def main():
     # SECTION 2: MEDICINE DEMAND FORECAST
     # =======================================================================
     with tab_forecast:
-        st.markdown(f'<div class="section-header">🔮 Machine Learning Demand Forecasting: {ATC_NAMES.get(selected_med, selected_med)}</div>', unsafe_allow_html=True)
-        st.markdown('<div class="section-subtitle">Recursive 7-step multi-horizon daily demand forecasting benchmarked against 7-day Moving Average.</div>', unsafe_allow_html=True)
+        is_synthetic_prod = (selected_med.startswith("SYN-") or
+                             (COMBINED_METADATA.get(selected_med, {}).get("is_synthetic", False)))
 
-        # Selected Medicine Holdout Evaluation Metrics
-        has_eval = (eval_df is not None) and (not eval_df[eval_df["medicine_id"] == selected_med].empty)
-        hist_days = len(med_daily)
+        if is_synthetic_prod:
+            fc_header_title = f"🧪 Simulated Demonstration Forecasting: {ATC_NAMES.get(selected_med, selected_med)}"
+            fc_header_sub = "Simulated 7-step multi-horizon daily demand demonstration for clinical portfolio presentation."
+        else:
+            fc_header_title = f"🔮 Machine Learning Demand Forecasting: {ATC_NAMES.get(selected_med, selected_med)}"
+            fc_header_sub = "Recursive 7-step multi-horizon daily demand forecasting benchmarked against 7-day Moving Average."
 
-        if has_eval:
-            ev_row = eval_df[eval_df["medicine_id"] == selected_med].iloc[0]
+        st.markdown(f'<div class="section-header">{fc_header_title}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-subtitle">{fc_header_sub}</div>', unsafe_allow_html=True)
 
+        # Selected Medicine Holdout Evaluation Metrics (Strictly reserved for genuine historical data)
+        if is_synthetic_prod:
             st.markdown(f"""
-            <div style="background-color: #FFFFFF; border: 1px solid #DDE5DF; border-left: 4px solid #166534; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: #16352B; text-transform: uppercase;">Holdout Evaluation Period: 60 Chronological Days (2019-08-10 to 2019-10-08)</div>
-                <div style="font-size: 0.88rem; color: #374151; margin-top: 2px;">
-                    Random Forest forecaster trained strictly on historical sales prior to holdout window without data leakage. Outperformed 7-day Moving Average baseline.
+            <div style="background-color: #FFFBEB; border: 1px solid #FCD34D; border-left: 4px solid #D97706; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
+                <div style="font-size: 0.88rem; font-weight: 700; color: #92400E; text-transform: uppercase;">
+                    🧪 Simulated Demonstration Forecast: {ATC_NAMES.get(selected_med, selected_med)}
+                </div>
+                <div style="font-size: 0.85rem; color: #78350F; margin-top: 4px; line-height: 1.45;">
+                    <strong>Scientific Integrity Guarantee:</strong> Evaluated machine learning accuracy metrics (MAE, RMSE, WAPE) are strictly reserved for genuine historical observations from the 2014–2019 benchmark.<br>
+                    Forecasts for this product are explicitly generated as simulated demonstrations and are not claimed to be evaluated empirical models.
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            fc_m1, fc_m2, fc_m3, fc_m4, fc_m5 = st.columns(5)
+            sim_mean = med_daily["units_sold"].mean() if not med_daily.empty else 0.0
+            sim_vol = med_daily["units_sold"].sum() if not med_daily.empty else 0.0
+            fc_m1, fc_m2, fc_m3, fc_m4 = st.columns(4)
             with fc_m1:
-                st.markdown(render_metric_card("Actual Mean Demand", f"{ev_row['mean_actual_demand']:.2f} units", "Daily Holdout Mean"), unsafe_allow_html=True)
+                st.markdown(render_metric_card("Simulated Mean Demand", f"{sim_mean:.2f} units/day", "Daily Simulation Mean", card_type="focus"), unsafe_allow_html=True)
             with fc_m2:
-                st.markdown(render_metric_card("Random Forest MAE", f"{ev_row['rf_mae']:.3f} units", f"{ev_row['mae_improvement_pct']}% error reduction", card_type="healthy"), unsafe_allow_html=True)
+                st.markdown(render_metric_card("Simulation Window", f"{len(med_daily)} days", "Simulated Daily Records Ingested"), unsafe_allow_html=True)
             with fc_m3:
-                st.markdown(render_metric_card("Baseline MAE (7d-MA)", f"{ev_row['baseline_mae']:.3f} units", "Historical 7-Day Baseline"), unsafe_allow_html=True)
+                st.markdown(render_metric_card("Cumulative Volume", f"{sim_vol:,.0f} units", "Simulated Historical Total"), unsafe_allow_html=True)
             with fc_m4:
-                st.markdown(render_metric_card("Forecast RMSE", f"{ev_row['rf_rmse']:.3f} units", f"Baseline RMSE: {ev_row['baseline_rmse']:.3f}"), unsafe_allow_html=True)
-            with fc_m5:
-                st.markdown(render_metric_card("Model WAPE Error", f"{ev_row['rf_wape_pct']:.1f}%", f"Top Model: {ev_row['best_model']}"), unsafe_allow_html=True)
+                st.markdown(render_metric_card("Forecast Engine", "SIMULATED DEMO", "Explicitly Labelled Simulation", card_type="warning"), unsafe_allow_html=True)
         else:
-            if hist_days < 60:
+            has_eval = (eval_df is not None) and (not eval_df[eval_df["medicine_id"] == selected_med].empty)
+            hist_days = len(med_daily)
+
+            if has_eval:
+                ev_row = eval_df[eval_df["medicine_id"] == selected_med].iloc[0]
+
                 st.markdown(f"""
-                <div style="background-color: #FEF3C7; border: 1px solid #FCD34D; border-left: 4px solid #B45309; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
-                    <div style="font-size: 0.88rem; font-weight: 700; color: #92400E; text-transform: uppercase;">
-                        ⚠️ Insufficient History for Machine Learning Forecasting ({hist_days} / 60 minimum required days)
-                    </div>
-                    <div style="font-size: 0.85rem; color: #78350F; margin-top: 4px; line-height: 1.4;">
-                        PHARMORA strictly requires a minimum of 60 chronological daily sales records to construct autoregressive lag features (1, 2, 3, 7, 14, 21, 28 days) and evaluate holdout predictions without data leakage or overfitting.<br>
-                        <strong>Zero-Fabrication Policy:</strong> No artificial sales facts or fabricated forecast accuracy metrics have been assigned to <strong>{selected_med}</strong>.
+                <div style="background-color: #FFFFFF; border: 1px solid #DDE5DF; border-left: 4px solid #166534; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
+                    <div style="font-size: 0.82rem; font-weight: 700; color: #16352B; text-transform: uppercase;">Holdout Evaluation Period: 60 Chronological Days (2019-08-10 to 2019-10-08)</div>
+                    <div style="font-size: 0.88rem; color: #374151; margin-top: 2px;">
+                        Random Forest forecaster trained strictly on historical sales prior to holdout window without data leakage. Outperformed 7-day Moving Average baseline.
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-                st.markdown("##### 📌 Explicitly Labelled Historical Fallback Projection")
-                mean_d = med_daily["units_sold"].mean() if not med_daily.empty else 0.0
-                f_col1, f_col2, f_col3 = st.columns(3)
-                with f_col1:
-                    st.markdown(render_metric_card("Fallback Daily Demand", f"{mean_d:.2f} units/day", "Historical Sample Mean (Labelled Fallback)", card_type="focus"), unsafe_allow_html=True)
-                with f_col2:
-                    st.markdown(render_metric_card("Historical Days Recorded", f"{hist_days} days", "Daily Sales Records Ingested"), unsafe_allow_html=True)
-                with f_col3:
-                    st.markdown(render_metric_card("Total Observed Volume", f"{med_daily['units_sold'].sum():,.1f} units", "Cumulative Actual Sales"), unsafe_allow_html=True)
+                fc_m1, fc_m2, fc_m3, fc_m4, fc_m5 = st.columns(5)
+                with fc_m1:
+                    st.markdown(render_metric_card("Actual Mean Demand", f"{ev_row['mean_actual_demand']:.2f} units", "Daily Holdout Mean"), unsafe_allow_html=True)
+                with fc_m2:
+                    st.markdown(render_metric_card("Random Forest MAE", f"{ev_row['rf_mae']:.3f} units", f"{ev_row['mae_improvement_pct']}% error reduction", card_type="healthy"), unsafe_allow_html=True)
+                with fc_m3:
+                    st.markdown(render_metric_card("Baseline MAE (7d-MA)", f"{ev_row['baseline_mae']:.3f} units", "Historical 7-Day Baseline"), unsafe_allow_html=True)
+                with fc_m4:
+                    st.markdown(render_metric_card("Forecast RMSE", f"{ev_row['rf_rmse']:.3f} units", f"Baseline RMSE: {ev_row['baseline_rmse']:.3f}"), unsafe_allow_html=True)
+                with fc_m5:
+                    st.markdown(render_metric_card("Model WAPE Error", f"{ev_row['rf_wape_pct']:.1f}%", f"Top Model: {ev_row['best_model']}"), unsafe_allow_html=True)
             else:
-                st.info(f"💡 **Sufficient Historical Data Available ({hist_days} days):** You can train a Random Forest forecaster for {selected_med} using the interactive backtester below.")
+                if hist_days < 60:
+                    st.markdown(f"""
+                    <div style="background-color: #FEF3C7; border: 1px solid #FCD34D; border-left: 4px solid #B45309; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
+                        <div style="font-size: 0.88rem; font-weight: 700; color: #92400E; text-transform: uppercase;">
+                            ⚠️ Insufficient History for Machine Learning Forecasting ({hist_days} / 60 minimum required days)
+                        </div>
+                        <div style="font-size: 0.85rem; color: #78350F; margin-top: 4px; line-height: 1.4;">
+                            PHARMORA strictly requires a minimum of 60 chronological daily sales records to construct autoregressive lag features (1, 2, 3, 7, 14, 21, 28 days) and evaluate holdout predictions without data leakage or overfitting.<br>
+                            <strong>Zero-Fabrication Policy:</strong> No artificial sales facts or fabricated forecast accuracy metrics have been assigned to <strong>{selected_med}</strong>.
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown("##### 📌 Explicitly Labelled Historical Fallback Projection")
+                    mean_d = med_daily["units_sold"].mean() if not med_daily.empty else 0.0
+                    f_col1, f_col2, f_col3 = st.columns(3)
+                    with f_col1:
+                        st.markdown(render_metric_card("Fallback Daily Demand", f"{mean_d:.2f} units/day", "Historical Sample Mean (Labelled Fallback)", card_type="focus"), unsafe_allow_html=True)
+                    with f_col2:
+                        st.markdown(render_metric_card("Historical Days Recorded", f"{hist_days} days", "Daily Sales Records Ingested"), unsafe_allow_html=True)
+                    with f_col3:
+                        st.markdown(render_metric_card("Total Observed Volume", f"{med_daily['units_sold'].sum():,.1f} units", "Cumulative Actual Sales"), unsafe_allow_html=True)
+                else:
+                    st.info(f"💡 **Sufficient Historical Data Available ({hist_days} days):** You can train a Random Forest forecaster for {selected_med} using the interactive backtester below.")
 
         # Unified Actual vs Forecast Visual
-        st.markdown(f"#### 📊 Historical Sales & 7-Day Demand Projection: {ATC_SHORT.get(selected_med, selected_med)}")
+        visual_title = f"📊 Simulated Sales & 7-Day Demand Projection: {ATC_SHORT.get(selected_med, selected_med)} [DEMO]" if is_synthetic_prod else f"📊 Historical Sales & 7-Day Demand Projection: {ATC_SHORT.get(selected_med, selected_med)}"
+        st.markdown(f"#### {visual_title}")
         has_fc = (forecast_df is not None) and (not forecast_df[forecast_df["medicine_id"] == selected_med].empty)
 
         if has_fc:
@@ -1009,49 +1335,64 @@ def main():
             act_max_date = recent_actual["date"].max() if not recent_actual.empty else actual_max_date
             act_cutoff_str = pd.to_datetime(act_max_date).strftime('%d %b %Y')
 
-            st.markdown(f"""
-            <div style="background-color: #FFFFFF; border: 1px solid #DDE5DF; border-left: 4px solid #166534; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <div style="font-size: 0.85rem; color: #374151;">
-                    <strong style="color: #16352B;">Horizon Distinction:</strong>
-                    Solid charcoal line displays verified <strong>actual historical sales facts</strong> (through {act_cutoff_str}).
-                    Green dashed line with diamond markers represents <strong>7-day forward ML predictions</strong> ({fc_start.strftime('%d %b %Y')} – {fc_end.strftime('%d %b %Y')}).
+            if is_synthetic_prod:
+                st.markdown(f"""
+                <div style="background-color: #FFFFFF; border: 1px solid #DDE5DF; border-left: 4px solid #D97706; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 0.85rem; color: #374151;">
+                        <strong style="color: #92400E;">Demonstration Horizon:</strong>
+                        Solid amber line displays <strong>simulated sales records</strong> (through {act_cutoff_str}).
+                        Dashed gold line with diamond markers represents <strong>7-day simulated forward demand projection</strong> ({fc_start.strftime('%d %b %Y')} – {fc_end.strftime('%d %b %Y')}).
+                    </div>
+                    <div style="background-color: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 12px;">
+                        🧪 SIMULATED DEMO FORECAST
+                    </div>
                 </div>
-                <div style="background-color: #E8F3EC; color: #166534; border: 1px solid #A7F3D0; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 12px;">
-                    FUTURE ML FORECAST
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div style="background-color: #FFFFFF; border: 1px solid #DDE5DF; border-left: 4px solid #166534; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 0.85rem; color: #374151;">
+                        <strong style="color: #16352B;">Horizon Distinction:</strong>
+                        Solid charcoal line displays verified <strong>actual historical sales facts</strong> (through {act_cutoff_str}).
+                        Green dashed line with diamond markers represents <strong>7-day forward ML predictions</strong> ({fc_start.strftime('%d %b %Y')} – {fc_end.strftime('%d %b %Y')}).
+                    </div>
+                    <div style="background-color: #E8F3EC; color: #166534; border: 1px solid #A7F3D0; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 12px;">
+                        FUTURE ML FORECAST
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
             fig_fc = go.Figure()
 
-            # Historical actual sales trace
+            # Sales trace
             if not recent_actual.empty:
                 fig_fc.add_trace(go.Scatter(
                     x=recent_actual["date"],
                     y=recent_actual["units_sold"],
-                    name=f"Actual Daily Sales (Facts through {act_cutoff_str})",
+                    name=f"Simulated Daily Sales (through {act_cutoff_str})" if is_synthetic_prod else f"Actual Daily Sales (Facts through {act_cutoff_str})",
                     mode="lines",
-                    line=dict(color="#374151", width=2)
+                    line=dict(color="#B45309" if is_synthetic_prod else "#374151", width=2)
                 ))
 
-            # Future ML Forecast trace
+            # Forecast trace
             fig_fc.add_trace(go.Scatter(
                 x=med_fc["forecast_date"],
                 y=med_fc["predicted_units"],
-                name=f"7-Day ML Forecast (Projection: {fc_start.strftime('%d %b')} – {fc_end.strftime('%d %b %Y')})",
+                name=f"7-Day Simulated Projection ({fc_start.strftime('%d %b')} – {fc_end.strftime('%d %b %Y')})" if is_synthetic_prod else f"7-Day ML Forecast (Projection: {fc_start.strftime('%d %b')} – {fc_end.strftime('%d %b %Y')})",
                 mode="lines+markers",
-                line=dict(color="#166534", width=3, dash="dash"),
-                marker=dict(size=8, color="#166534", symbol="diamond")
+                line=dict(color="#D97706" if is_synthetic_prod else "#166534", width=3, dash="dash"),
+                marker=dict(size=8, color="#D97706" if is_synthetic_prod else "#166534", symbol="diamond")
             ))
 
-            # Vertical demarcation line at historical actuals cutoff
+            # Vertical demarcation line at actuals/baseline cutoff
             if not recent_actual.empty:
+                cutoff_text = "Cutoff: Simulation Baseline End" if is_synthetic_prod else "Cutoff: Historical Actuals End"
                 fig_fc.add_vline(
                     x=recent_actual["date"].max(),
                     line_width=2,
                     line_dash="dot",
                     line_color="#B45309",
-                    annotation_text="Cutoff: Historical Actuals End",
+                    annotation_text=cutoff_text,
                     annotation_position="top left",
                     annotation_font=dict(size=11, color="#92400E", family="sans-serif")
                 )
@@ -1070,18 +1411,19 @@ def main():
                 ))
 
             # Shaded forecast horizon rectangle
+            horizon_box_color = "#D97706" if is_synthetic_prod else "#166534"
             fig_fc.add_vrect(
                 x0=fc_start,
                 x1=fc_end,
-                fillcolor="#166534",
+                fillcolor=horizon_box_color,
                 opacity=0.07,
                 layer="below",
                 line_width=1,
-                line_color="#166534",
+                line_color=horizon_box_color,
                 line_dash="dash",
-                annotation_text="🔮 Forecast Horizon",
+                annotation_text="🧪 Simulated Horizon" if is_synthetic_prod else "🔮 Forecast Horizon",
                 annotation_position="top right",
-                annotation_font=dict(size=11, color="#166534", family="sans-serif")
+                annotation_font=dict(size=11, color=horizon_box_color, family="sans-serif")
             )
 
             fig_fc.update_layout(
@@ -1098,15 +1440,17 @@ def main():
             st.plotly_chart(fig_fc, width="stretch")
 
             # Daily predicted demand schedule for Selected Medicine
-            st.markdown(f"#### 📅 7-Day Day-by-Day Forecast Schedule: {ATC_SHORT.get(selected_med, '')}")
+            sched_title = f"📅 7-Day Day-by-Day Simulated Schedule: {ATC_SHORT.get(selected_med, '')} [DEMO]" if is_synthetic_prod else f"📅 7-Day Day-by-Day Forecast Schedule: {ATC_SHORT.get(selected_med, '')}"
+            st.markdown(f"#### {sched_title}")
             if not med_fc.empty:
                 med_fc_disp = med_fc[["forecast_date", "predicted_units", "model_name"]].copy()
                 med_fc_disp["Day of Week"] = med_fc_disp["forecast_date"].dt.day_name()
                 med_fc_disp["Date"] = med_fc_disp["forecast_date"].dt.strftime("%Y-%m-%d")
-                med_fc_disp["Record Type"] = "🔮 Future Forecast (Not Actual Sales)"
+                med_fc_disp["Record Type"] = "🧪 Simulated Demo Forecast" if is_synthetic_prod else "🔮 Future Forecast (Not Actual Sales)"
+                qty_col_name = "Projected Demand (Simulated Demo Units)" if is_synthetic_prod else "Projected Demand (ML Units)"
                 med_fc_disp = med_fc_disp[["Date", "Day of Week", "predicted_units", "model_name", "Record Type"]].rename(columns={
-                    "predicted_units": "Projected Demand (ML Units)",
-                    "model_name": "Forecasting Algorithm",
+                    "predicted_units": qty_col_name,
+                    "model_name": "Forecast Method" if is_synthetic_prod else "Forecasting Algorithm",
                     "Record Type": "Data Classification"
                 })
                 st.dataframe(med_fc_disp, width="stretch", hide_index=True)
@@ -1117,7 +1461,7 @@ def main():
                 fig_fb.add_trace(go.Scatter(
                     x=med_daily["date"],
                     y=med_daily["units_sold"],
-                    name=f"Actual Daily Sales ({len(med_daily)} days)",
+                    name=f"Daily Sales ({len(med_daily)} days)",
                     mode="lines+markers",
                     line=dict(color="#166534", width=2),
                     marker=dict(size=6, color="#166534")
@@ -1152,7 +1496,7 @@ def main():
                 })
                 st.dataframe(fb_sched, width="stretch", hide_index=True)
 
-        # Full 8-Medicine 7-Day Forecast Matrix
+        # Full Forecast Matrix across Available Medicines
         with st.expander("🌐 View 7-Day Forecast Matrix across Available Medicines"):
             if forecast_df is not None:
                 pivot_fc = forecast_df.pivot(index="forecast_date", columns="medicine_id", values="predicted_units").reset_index()
@@ -1162,28 +1506,31 @@ def main():
                 cols = ["Date", "Day"] + fc_med_cols
                 st.dataframe(pivot_fc[cols], width="stretch", hide_index=True)
 
-        # Interactive Model Retraining Backtest
+        # Interactive Model Retraining Backtest (Reserved for Genuine Historical Observations)
         with st.expander("🛠️ Interactive Forecaster Backtest & Holdout Re-evaluation"):
-            st.caption("Retrain Scikit-learn Random Forest model on historical data using custom holdout horizons.")
-            bt_col1, bt_col2 = st.columns([1, 2])
-            with bt_col1:
-                test_days = st.slider(f"Holdout Window for {selected_med} (Days)", min_value=30, max_value=120, value=60, step=15, key=f"holdout_slider_{selected_med}")
-                btn_train = st.button("Run Holdout Retraining", type="primary", key=f"btn_train_{selected_med}")
+            if is_synthetic_prod:
+                st.warning(f"⚠️ **Model Retraining Disabled for Simulated Medicine [{selected_med}]:** Forecaster backtesting and holdout error evaluation are reserved exclusively for genuine historical observations. For presentation demonstrations, this product's forecast is pre-computed under the synthetic scenario generator.")
+            else:
+                st.caption("Retrain Scikit-learn Random Forest model on historical data using custom holdout horizons.")
+                bt_col1, bt_col2 = st.columns([1, 2])
+                with bt_col1:
+                    test_days = st.slider(f"Holdout Window for {selected_med} (Days)", min_value=30, max_value=120, value=60, step=15, key=f"holdout_slider_{selected_med}")
+                    btn_train = st.button("Run Holdout Retraining", type="primary", key=f"btn_train_{selected_med}")
 
-            if btn_train:
-                if len(med_daily) < 65:
-                    st.error(f"Cannot train forecaster for {selected_med}: minimum 65 chronological records required (found {len(med_daily)}).")
-                else:
-                    try:
-                        with st.spinner(f"Training Random Forest on {selected_med} with {test_days} days holdout..."):
-                            _, metrics = train_medicine_forecaster(daily_df, selected_med, test_days=test_days)
-                        with bt_col2:
-                            st.success(f"**Retraining Complete for {selected_med}:**")
-                            st.write(f"- Random Forest MAE: **{metrics['mae']} units** (RMSE: {metrics['rmse']} units)")
-                            st.write(f"- 7-Day Moving Avg Baseline MAE: **{metrics['baseline_mae']} units**")
-                            st.write(f"- Error Reduction: **{metrics['mae_improvement_pct']}%** ({'Random Forest Wins' if metrics['better_than_baseline'] else 'Baseline Wins'})")
-                    except Exception as ex:
-                        st.error(f"Training error: {ex}")
+                if btn_train:
+                    if len(med_daily) < 65:
+                        st.error(f"Cannot train forecaster for {selected_med}: minimum 65 chronological records required (found {len(med_daily)}).")
+                    else:
+                        try:
+                            with st.spinner(f"Training Random Forest on {selected_med} with {test_days} days holdout..."):
+                                _, metrics = train_medicine_forecaster(daily_df, selected_med, test_days=test_days)
+                            with bt_col2:
+                                st.success(f"**Retraining Complete for {selected_med}:**")
+                                st.write(f"- Random Forest MAE: **{metrics['mae']} units** (RMSE: {metrics['rmse']} units)")
+                                st.write(f"- 7-Day Moving Avg Baseline MAE: **{metrics['baseline_mae']} units**")
+                                st.write(f"- Error Reduction: **{metrics['mae_improvement_pct']}%** ({'Random Forest Wins' if metrics['better_than_baseline'] else 'Baseline Wins'})")
+                        except Exception as ex:
+                            st.error(f"Training error: {ex}")
 
     # =======================================================================
     # SECTION 3: STOCKOUT RISK
@@ -1266,13 +1613,18 @@ def main():
             st_disp = stockout_df.copy()
             st_disp["Focus"] = st_disp["medicine_id"].apply(lambda x: "👉 SELECTED" if x == selected_med else "")
             st_disp["Drug"] = st_disp["medicine_id"].map(lambda x: ATC_SHORT.get(x, x))
+            if "data_source" in st_disp.columns:
+                st_disp["Data Source"] = st_disp["data_source"].apply(lambda x: "🧪 Synthetic Demo" if x == "SYNTHETIC_DEMO" else "🔒 Historical Benchmark")
+            else:
+                st_disp["Data Source"] = st_disp["medicine_id"].apply(lambda x: "🧪 Synthetic Demo" if x.startswith("SYN-") else "🔒 Historical Benchmark")
+
             cols = [
-                "Focus", "medicine_id", "Drug", "current_stock", "pending_order_quantity",
+                "Focus", "medicine_id", "Drug", "Data Source", "current_stock", "pending_order_quantity",
                 "inventory_position", "supplier_lead_time_days", "lead_time_demand",
                 "safety_stock", "reorder_point", "estimated_days_of_cover", "risk_status"
             ]
             st_disp = st_disp[cols].rename(columns={
-                "medicine_id": "ATC Code",
+                "medicine_id": "Identifier",
                 "current_stock": "Physical Stock",
                 "pending_order_quantity": "In-Flight Pending",
                 "inventory_position": "Net Position",
@@ -1313,7 +1665,8 @@ def main():
         st.markdown(f'<div class="section-header">⏳ FEFO Batch Expiration Risk Audit: {ATC_NAMES.get(selected_med, selected_med)}</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-subtitle">Multi-batch First-Expired, First-Out (FEFO) cumulative demand allocation and healthcare quarantine audit.</div>', unsafe_allow_html=True)
 
-        st.info("ℹ️ **Synthetic Demonstration Master:** The 16 batch records are synthetic demonstrations mapped to real ATC demand curves. **Healthcare Safety Protocol:** Expired medications must never be dispensed under any circumstances.")
+        num_batches_text = f"{len(expiry_df)} batch records" if expiry_df is not None else "batch records"
+        st.info(f"ℹ️ **FEFO Batch Audit:** Tracking {num_batches_text} evaluated against demand curves. **Healthcare Safety Protocol:** Expired medications must never be dispensed under any circumstances.")
 
         # Filter batches strictly for the selected medicine
         med_batches = expiry_df[expiry_df["medicine_id"] == selected_med] if expiry_df is not None else pd.DataFrame()
@@ -1410,15 +1763,22 @@ def main():
             st.plotly_chart(fig_ex, width="stretch")
 
         # Network-wide batch audit
-        with st.expander("🌐 View All 16 Warehouse Batches across All Categories"):
+        total_batches_all = len(expiry_df) if expiry_df is not None else 0
+        with st.expander(f"🌐 View All {total_batches_all} Warehouse Batches across All Categories"):
             if expiry_df is not None:
-                all_b_disp = expiry_df[[
-                    "batch_id", "medicine_id", "batch_quantity", "expiry_date",
+                all_b_disp = expiry_df.copy()
+                all_b_disp["expiry_date"] = all_b_disp["expiry_date"].dt.strftime("%Y-%m-%d")
+                if "data_source" in all_b_disp.columns:
+                    all_b_disp["Data Source"] = all_b_disp["data_source"].apply(lambda x: "🧪 Synthetic Demo" if x == "SYNTHETIC_DEMO" else "🔒 Baseline Formulary")
+                else:
+                    all_b_disp["Data Source"] = all_b_disp["medicine_id"].apply(lambda x: "🧪 Synthetic Demo" if x.startswith("SYN-") else "🔒 Baseline Formulary")
+
+                b_cols = [
+                    "batch_id", "medicine_id", "Data Source", "batch_quantity", "expiry_date",
                     "days_until_expiry", "unsold_units_at_risk", "value_at_risk",
                     "expiry_status", "action_recommendation"
-                ]].copy()
-                all_b_disp["expiry_date"] = all_b_disp["expiry_date"].dt.strftime("%Y-%m-%d")
-                st.dataframe(all_b_disp, width="stretch", hide_index=True)
+                ]
+                st.dataframe(all_b_disp[b_cols].rename(columns={"medicine_id": "Identifier"}), width="stretch", hide_index=True)
 
     # =======================================================================
     # SECTION 5: SMART REORDERING
@@ -1531,13 +1891,18 @@ def main():
             r_disp = reorder_df.copy()
             r_disp["Focus"] = r_disp["medicine_id"].apply(lambda x: "👉 SELECTED" if x == selected_med else "")
             r_disp["Drug"] = r_disp["medicine_id"].map(lambda x: ATC_SHORT.get(x, x))
+            if "data_source" in r_disp.columns:
+                r_disp["Data Source"] = r_disp["data_source"].apply(lambda x: "🧪 Synthetic Demo" if x == "SYNTHETIC_DEMO" else "🔒 Historical Benchmark")
+            else:
+                r_disp["Data Source"] = r_disp["medicine_id"].apply(lambda x: "🧪 Synthetic Demo" if x.startswith("SYN-") else "🔒 Historical Benchmark")
+
             cols = [
-                "Focus", "medicine_id", "Drug", "current_stock", "pending_order_quantity",
+                "Focus", "medicine_id", "Drug", "Data Source", "current_stock", "pending_order_quantity",
                 "forecast_lead_time_demand", "reorder_point", "target_stock",
                 "suggested_order_quantity", "reorder_status", "recommended_order_timing"
             ]
             r_disp = r_disp[cols].rename(columns={
-                "medicine_id": "ATC Code",
+                "medicine_id": "Identifier",
                 "current_stock": "Current Stock",
                 "pending_order_quantity": "In-Flight Pending",
                 "forecast_lead_time_demand": "LT Demand",
@@ -1778,18 +2143,86 @@ def main():
 
             st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 
+            # --- Optimization Engine Telemetry & Decision Rationale ---
+            opt_meta = engine_output.get("optimization_meta", {})
+            solver_st = summary.get("solver_status", "OPTIMAL_MILP")
+            is_optimal = solver_st == "OPTIMAL_MILP"
+
+            opt_head_c1, opt_head_c2 = st.columns([3, 2])
+            with opt_head_c1:
+                st.markdown("#### 🧠 Multi-Branch Constraint Optimization Telemetry")
+                st.caption(f"Engine: **{summary.get('optimization_method', 'SciPy MILP')}** · Mixed-Integer Linear Programming")
+            with opt_head_c2:
+                badge_bg = '#ECFDF5' if is_optimal else '#FFFBEB'
+                badge_txt = '#065F46' if is_optimal else '#92400E'
+                badge_bdr = '#A7F3D0' if is_optimal else '#FDE68A'
+                badge_label = '✅ Global Cost-Optimal (SciPy MILP / HiGHS)' if is_optimal else '⚠️ Heuristic Fallback (Greedy)'
+                st.markdown(
+                    f'<div style="text-align: right; padding-top: 10px;"><span style="background-color: {badge_bg}; color: {badge_txt}; border: 1px solid {badge_bdr}; padding: 5px 12px; border-radius: 14px; font-size: 0.82rem; font-weight: 700;">{badge_label}</span></div>',
+                    unsafe_allow_html=True
+                )
+
+            t_col1, t_col2, t_col3, t_col4 = st.columns(4)
+            with t_col1:
+                st.markdown(render_metric_card(
+                    "Est. Transfer Logistics",
+                    f"₹{summary.get('logistics_cost_val', 0.0):,.2f}",
+                    "Internal transfer freight",
+                    card_type="default"
+                ), unsafe_allow_html=True)
+            with t_col2:
+                st.markdown(render_metric_card(
+                    "Residual Supplier Orders",
+                    f"₹{comparison.get('residual_purchase_cost', 0.0):,.2f}",
+                    f"{comparison.get('residual_purchase_units', 0)} units to purchase",
+                    card_type="warning" if comparison.get('residual_purchase_units', 0) > 0 else "healthy"
+                ), unsafe_allow_html=True)
+            with t_col3:
+                st.markdown(render_metric_card(
+                    "Expiry Waste Prevented",
+                    f"₹{summary.get('expiry_waste_avoided_val', 0.0):,.2f}",
+                    f"{summary.get('potential_stock_rescued_units', 0)} units rescued",
+                    card_type="healthy" if summary.get('potential_stock_rescued_units', 0) > 0 else "default"
+                ), unsafe_allow_html=True)
+            with t_col4:
+                st.markdown(render_metric_card(
+                    "Net Optimized Spend",
+                    f"₹{comparison.get('net_procurement_spend', 0.0):,.2f}",
+                    f"Save {comparison.get('net_savings_pct', 0.0)}% vs traditional",
+                    card_type="focus"
+                ), unsafe_allow_html=True)
+
+            with st.expander("📐 Why Was This Plan Selected? (Mathematical Constraint Formulation & Assumptions)"):
+                st.markdown("""
+                **Mathematical Formulation:**
+                PHARMORA models multi-branch reordering as a global Mixed-Integer Linear Program (MILP) solved via SciPy's `HiGHS` solver:
+                
+                $$\\min \\sum_{k=(b,j)} \\left( c_{\\text{logistics}, k} \\cdot x_k - 2 C_{m} \\cdot x_k + \\epsilon_1 D_b \\cdot x_k + \\epsilon_2 \\text{dist}_k \\cdot x_k \\right) + \\sum_{j} C_{m} \\cdot \\text{ResidualPurchase}_j$$
+                
+                **Enforced Constraints:**
+                1. **Destination Demand Cap:** $\\sum_{b} x_{b,j} \\le R_{j,m}$ (Transfers into branch $j$ cannot exceed gross reorder requirement).
+                2. **Single-Unit / Batch Capacity Cap:** $\\sum_{j} x_{b,j} \\le Q_b$ (No unit of stock is allocated to multiple destinations).
+                3. **Source Surplus Cap:** $\\sum_{j} x_{b,j} \\le S_{s,m}$ (Source branches preserve local demand for lead time + 14-day safety buffer).
+                4. **Shelf-Life Feasibility:** $x_{b,j} \\le \\lfloor D_b \\times d_{j,m} \\rfloor$ (Destination branch can fully consume transferred units before expiration).
+                5. **Storage Certification:** Strict compatibility check ($b[\\text{storage}] \\in \\text{dest}[\\text{storage\\_certs}]$; e.g., Cold Chain batches require certified facilities).
+                
+                *Note: Demonstrations utilize clearly labelled synthetic branch inventory simulating a multi-location health system. Claims of cost-optimality reflect mathematical convergence of the solver under stated model parameters and available inventory.*
+                """)
+
+            st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+
             # --- Interactive Filters Bar ---
             st.markdown("#### 🔍 Filter Recommendations & Stock Opportunities")
             f_col1, f_col2, f_col3, f_col4 = st.columns(4)
 
             with f_col1:
-                filter_med_options = ["All 8 Medicines"] + all_meds
-                default_med_choice = selected_med if selected_med in filter_med_options else "All 8 Medicines"
+                filter_med_options = ["All Medicines"] + all_meds
+                default_med_choice = selected_med if selected_med in filter_med_options else "All Medicines"
                 filter_med = st.selectbox(
                     "Filter by Medicine",
                     options=filter_med_options,
                     index=filter_med_options.index(default_med_choice) if default_med_choice in filter_med_options else 0,
-                    format_func=lambda x: f"{x} - {ATC_SHORT.get(x, '')}" if x != "All 8 Medicines" else "All 8 Medicines",
+                    format_func=lambda x: f"{x} - {ATC_SHORT.get(x, '')}" if x != "All Medicines" else "All Medicines",
                     key="rescue_filter_med"
                 )
 
@@ -1828,7 +2261,7 @@ def main():
             for r in all_recs:
                 if r["recommendation_id"] in st.session_state.get("rejected_recommendations", set()):
                     continue
-                if filter_med != "All 8 Medicines" and r["medicine_id"] != filter_med:
+                if filter_med != "All Medicines" and r["medicine_id"] != filter_med:
                     continue
                 if curr_mode == MODE_MULTI_BRANCH and filter_branch != "All Branches":
                     if r.get("destination_id") != filter_branch and r.get("source_id") != filter_branch:
@@ -1886,7 +2319,11 @@ def main():
                 st.markdown(f"##### 📦 Prescriptive Transfer Recommendations ({len(filtered_recs)} Actions Evaluated)")
 
                 if not filtered_recs:
-                    st.info("ℹ️ No recommendations match the selected filters.")
+                    is_syn_filter = (filter_med.startswith("SYN-") or COMBINED_METADATA.get(filter_med, {}).get("is_synthetic", False))
+                    if is_syn_filter:
+                        st.info(f"ℹ️ **Multi-Branch Balancing for {filter_med} ({ATC_SHORT.get(filter_med, filter_med)}):** Physical multi-branch stock levels are currently registered for the primary central formulary categories across Central Dispensary, South Clinic, and Metro Hospital. Single-facility reorder recommendations for {filter_med} are actively evaluated in Tab 5 (Smart Reordering).")
+                    else:
+                        st.info("ℹ️ No recommendations match the selected filters.")
                 else:
                     for rec in filtered_recs:
                         med_code = rec["medicine_id"]
@@ -1923,7 +2360,7 @@ def main():
                                         <div style="font-size: 1.05rem; font-weight: 800; color: #15803D;">₹{rec['financial_waste_avoided']:,.2f}</div>
                                     </div>
                                 </div>
-                                <div style="display: flex; gap: 16px; margin: 10px 0; font-size: 0.88rem; color: #374151;">
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; font-size: 0.88rem; color: #374151;">
                                     <div style="background-color: #F1F5F9; border-radius: 4px; padding: 6px 12px;">
                                         Gross Reorder Need: <strong>{rec['original_reorder_qty']} units</strong>
                                     </div>
@@ -1932,6 +2369,12 @@ def main():
                                     </div>
                                     <div style="background-color: #FEF3C7; color: #92400E; border-radius: 4px; padding: 6px 12px;">
                                         Remaining Supplier Reorder: <strong>{rec['remaining_reorder_qty']} units</strong>
+                                    </div>
+                                    <div style="background-color: #F0F9FF; color: #0284C7; border-radius: 4px; padding: 6px 12px;">
+                                        Est. Logistics Fee: <strong>₹{rec.get('logistics_cost', 0.0):,.2f}</strong>
+                                    </div>
+                                    <div style="background-color: #F8FAFC; border: 1px solid #CBD5E1; color: #475569; border-radius: 4px; padding: 6px 12px;">
+                                        Solver: <strong>{rec.get('optimization_status', 'OPTIMAL_MILP')}</strong>
                                     </div>
                                 </div>
                                 <div style="font-size: 0.86rem; color: #374151; line-height: 1.45; margin-bottom: 12px;">
@@ -2041,7 +2484,11 @@ def main():
                 """, unsafe_allow_html=True)
 
                 if not filtered_recs:
-                    st.info("ℹ️ No network sharing matches available for current filters.")
+                    is_syn_filter = (filter_med.startswith("SYN-") or COMBINED_METADATA.get(filter_med, {}).get("is_synthetic", False))
+                    if is_syn_filter:
+                        st.info(f"ℹ️ **Network Stock-Sharing for {filter_med} ({ATC_SHORT.get(filter_med, filter_med)}):** Peer pharmacy sharing network is currently active for primary ATC formulary categories. Independent inventory reorders for {filter_med} are available in Tab 5 (Smart Reordering).")
+                    else:
+                        st.info("ℹ️ No network sharing matches available for current filters.")
                 else:
                     for rec in filtered_recs:
                         rec_id = rec["recommendation_id"]
@@ -2074,6 +2521,23 @@ def main():
                                     <div>
                                         <div style="font-size: 0.72rem; color: #0284C7; text-transform: uppercase;">Potential Capital Rescued</div>
                                         <div style="font-size: 1.05rem; font-weight: 800; color: #15803D;">₹{rec['financial_waste_avoided']:,.2f}</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; font-size: 0.88rem; color: #374151;">
+                                    <div style="background-color: #F1F5F9; border-radius: 4px; padding: 6px 12px;">
+                                        Gross Need: <strong>{rec['original_reorder_qty']} units</strong>
+                                    </div>
+                                    <div style="background-color: #E0F2FE; color: #0369A1; border-radius: 4px; padding: 6px 12px;">
+                                        Potential Peer Match: <strong>{rec['transfer_quantity']} units</strong>
+                                    </div>
+                                    <div style="background-color: #FEF3C7; color: #92400E; border-radius: 4px; padding: 6px 12px;">
+                                        Residual Supplier Order: <strong>{rec['remaining_reorder_qty']} units</strong>
+                                    </div>
+                                    <div style="background-color: #F0F9FF; color: #0284C7; border-radius: 4px; padding: 6px 12px;">
+                                        Est. Courier Logistics: <strong>₹{rec.get('logistics_cost', 0.0):,.2f}</strong>
+                                    </div>
+                                    <div style="background-color: #F8FAFC; border: 1px solid #CBD5E1; color: #475569; border-radius: 4px; padding: 6px 12px;">
+                                        Solver: <strong>{rec.get('optimization_status', 'OPTIMAL_MILP')}</strong>
                                     </div>
                                 </div>
                                 <div style="font-size: 0.86rem; color: #374151; line-height: 1.45; margin-bottom: 12px;">
@@ -2230,6 +2694,9 @@ def main():
             st.markdown(f"#### 📅 Day-of-Week Purchasing Seasonality ({start_d.strftime('%d %b %Y')} – {end_d.strftime('%d %b %Y')})")
             dow_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
             dow_source = filtered_daily if not filtered_daily.empty else daily_df
+            if "day_of_week" not in dow_source.columns and "date" in dow_source.columns:
+                dow_source = dow_source.copy()
+                dow_source["day_of_week"] = pd.to_datetime(dow_source["date"]).dt.day_name()
             dow_sales = dow_source.groupby("day_of_week")["units_sold"].mean().reindex(dow_order).reset_index()
             fig_dow = px.bar(
                 dow_sales,
